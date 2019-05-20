@@ -12,7 +12,7 @@ This web component allows you to add PDF rendering support to your web applicati
 
 ## Installation
 - `npm i`
-- `https://github.com/phemium/pdf-viewer.git`
+- `git submodule update --init --recursive`
 
 ## Usage
 ```
