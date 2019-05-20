@@ -11,7 +11,7 @@ This web component allows you to add PDF rendering support to your web applicati
 - Side panel for quick thumbnail navigation
 
 ## Installation
-- `npm i @teamhive/pdf-viewer`
+- `npm i`
 - `https://github.com/phemium/pdf-viewer.git`
 
 ## Usage
