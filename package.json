@@ -25,9 +25,7 @@
         "pdf.js:build": "cd pdf.js && gulp generic",
         "prepublishOnly": "npm run build"
     },
-    "dependencies": {
-        "gulp": "^4.0.2"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@stencil/core": "0.17.0",
         "@stencil/sass": "0.1.1",
