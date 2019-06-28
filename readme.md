@@ -47,7 +47,7 @@ Add viewer assets to `angular.json` assets block:
                         "assets": [
                             {
                                 "glob": "**/*",
-                                "input": "node_modules/@teamhive/pdf-viewer/dist/pdf-viewer/pdf-viewer-assets",
+                                "input": "node_modules/@phemium/pdf-viewer/dist/pdf-viewer/pdf-viewer-assets",
                                 "output": "pdf-viewer-assets"
                             }
 ```
@@ -70,9 +70,3 @@ Follow the [Stencil JS Framework Integration](https://stenciljs.com/docs/overvie
 |`pageChange(currentPage: number)`|Emits the current page number when the current page changes.|
 
 ---
-
-## Contributors
-
-[<img alt="Sean Bannigan" src="https://avatars1.githubusercontent.com/u/15218748?s=460&v=4" width="117">](https://github.com/sbannigan) | [<img alt="Sean Perkins" src="https://avatars1.githubusercontent.com/u/13732623?v=4&s=117" width="117">](https://github.com/sean-perkins) |[<img alt="Justin True" src="https://avatars3.githubusercontent.com/u/17008383?s=400&v=4" width="117">](https://github.com/bbjdt2224)  |
-:---:|:---:|:---:
-|[Sean Bannigan](https://github.com/sean-perkins)|[Sean Perkins](https://github.com/sean-perkins)|[Justin True](https://github.com/bbjdt2224)
