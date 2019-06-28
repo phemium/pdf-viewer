@@ -19,14 +19,19 @@ This web component allows you to add PDF rendering support to your web applicati
 - `npm run build`
 
 ## Usage
-```
-<hive-pdf-viewer src="http://www.mydomain.com/example.pdf"></hive-pdf-viewer>
+
+```bash
+ npm i https://github.com/phemium/pdf-viewer
 ```
 
 Somewhere in your project (e.g. `main.ts`):
 ```
-import { defineCustomElements } from '@teamhive/pdf-viewer/dist/loader';
+import { defineCustomElements } from '@phemium/pdf-viewer/dist/loader';
 defineCustomElements(window);
+```
+
+```
+<hive-pdf-viewer src="http://www.mydomain.com/example.pdf"></hive-pdf-viewer>
 ```
 
 ### Angular
