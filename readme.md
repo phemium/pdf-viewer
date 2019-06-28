@@ -31,7 +31,7 @@ defineCustomElements(window);
 ```
 
 ```
-<hive-pdf-viewer src="http://www.mydomain.com/example.pdf"></hive-pdf-viewer>
+<phemium-pdf-viewer src="http://www.mydomain.com/example.pdf"></phemium-pdf-viewer>
 ```
 
 ### Angular
