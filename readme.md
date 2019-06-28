@@ -10,9 +10,13 @@ This web component allows you to add PDF rendering support to your web applicati
 - Fit to Page / Fit to Width
 - Side panel for quick thumbnail navigation
 
-## Installation
+## Installation for development
 - `npm i`
 - `git submodule update --init --recursive`
+- `cd pdf.js && npm i`
+
+## Production Build
+- `npm run build`
 
 ## Usage
 ```

@@ -1,0 +1,36 @@
+import '../../stencil.core';
+import { EventEmitter } from '../../stencil.core';
+export declare class PdfViewer {
+    static CSSVariables: string[];
+    element: HTMLElement;
+    resourcesUrl: string;
+    window: Window;
+    src: string;
+    page: number;
+    enableToolbar: boolean;
+    toolbarEl: HTMLElement;
+    updateToolbarVisibility(): void;
+    enableSideDrawer: boolean;
+    sidebarToggleEl: HTMLElement;
+    updateSideDrawerVisibility(): void;
+    enableSearch: boolean;
+    searchToggleEl: HTMLElement;
+    updateSearchVisibility(): void;
+    pageChange: EventEmitter<number>;
+    onLinkClick: EventEmitter<string>;
+    print(): Promise<void>;
+    scale: 'auto' | 'page-fit' | 'page-width' | number;
+    updateScale(): void;
+    setScale(scale: 'auto' | 'page-fit' | 'page-width' | number): void;
+    iframeEl: HTMLIFrameElement;
+    viewerContainer: HTMLElement;
+    iframeLoaded: boolean;
+    readonly viewerSrc: string;
+    componentDidLoad(): void;
+    setCSSVariables(): void;
+    initButtonVisibility(): void;
+    addEventListeners(): void;
+    handlePageChange(e: any): void;
+    handleLinkClick(e: any): void;
+    render(): JSX.Element;
+}

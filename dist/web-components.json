@@ -1,0 +1,40 @@
+{
+  "tags": [
+    {
+      "label": "hive-pdf-viewer",
+      "description": "",
+      "attributes": [
+        {
+          "label": "enable-search",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "enable-side-drawer",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "enable-toolbar",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "page",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "scale",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "src",
+          "description": "",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

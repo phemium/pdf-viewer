@@ -1,0 +1,106 @@
+{
+  "components": [
+    {
+      "tag": "hive-pdf-viewer",
+      "dependencies": [],
+      "componentClass": "PdfViewer",
+      "componentPath": "components/pdf-viewer/pdf-viewer.js",
+      "styles": {
+        "$": {
+          "stylePaths": [
+            "components/pdf-viewer/pdf-viewer.scss"
+          ]
+        }
+      },
+      "assetPaths": [
+        "components/pdf-viewer/pdf-viewer-assets"
+      ],
+      "props": [
+        {
+          "name": "enableSearch",
+          "type": "Boolean",
+          "attr": "enable-search",
+          "watch": [
+            "updateSearchVisibility"
+          ]
+        },
+        {
+          "name": "enableSideDrawer",
+          "type": "Boolean",
+          "attr": "enable-side-drawer",
+          "watch": [
+            "updateSideDrawerVisibility"
+          ]
+        },
+        {
+          "name": "enableToolbar",
+          "type": "Boolean",
+          "attr": "enable-toolbar",
+          "watch": [
+            "updateToolbarVisibility"
+          ]
+        },
+        {
+          "name": "page",
+          "type": "Number",
+          "attr": "page"
+        },
+        {
+          "name": "scale",
+          "type": "Any",
+          "attr": "scale",
+          "watch": [
+            "updateScale"
+          ]
+        },
+        {
+          "name": "src",
+          "type": "String",
+          "attr": "src"
+        }
+      ],
+      "states": [
+        {
+          "name": "iframeLoaded"
+        }
+      ],
+      "methods": [
+        {
+          "name": "print"
+        },
+        {
+          "name": "setScale"
+        }
+      ],
+      "context": [
+        {
+          "name": "resourcesUrl",
+          "id": "resourcesUrl"
+        },
+        {
+          "name": "window",
+          "id": "window"
+        }
+      ],
+      "hostElement": {
+        "name": "element"
+      },
+      "events": [
+        {
+          "event": "onLinkClick"
+        },
+        {
+          "event": "pageChange"
+        }
+      ],
+      "shadow": true
+    }
+  ],
+  "collections": [],
+  "compiler": {
+    "name": "@stencil/core",
+    "version": "0.17.0",
+    "typescriptVersion": "3.2.2"
+  },
+  "bundles": []
+}
