@@ -110,7 +110,7 @@ class PdfViewer {
     render() {
         return h("iframe", { class: this.iframeLoaded ? 'loaded' : '', ref: (el) => this.iframeEl = el, src: this.viewerSrc });
     }
-    static get is() { return "hive-pdf-viewer"; }
+    static get is() { return "phemium-pdf-viewer"; }
     static get encapsulation() { return "shadow"; }
     static get properties() { return {
         "element": {
@@ -180,4 +180,4 @@ PdfViewer.CSSVariables = [
     '--pdf-viewer-bottom-offset'
 ];
 
-export { PdfViewer as HivePdfViewer };
+export { PdfViewer as PhemiumPdfViewer };

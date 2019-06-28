@@ -1,7 +1,7 @@
 {
   "components": [
     {
-      "tag": "hive-pdf-viewer",
+      "tag": "phemium-pdf-viewer",
       "dependencies": [],
       "componentClass": "PdfViewer",
       "componentPath": "components/pdf-viewer/pdf-viewer.js",

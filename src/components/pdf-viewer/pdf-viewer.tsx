@@ -1,7 +1,7 @@
 import { Component, Prop, Element, Event, EventEmitter, Watch, Method, State } from '@stencil/core';
 
 @Component({
-    tag: 'hive-pdf-viewer',
+    tag: 'phemium-pdf-viewer',
     styleUrl: 'pdf-viewer.scss',
     shadow: true,
     assetsDir: 'pdf-viewer-assets'

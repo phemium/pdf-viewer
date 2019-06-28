@@ -108,7 +108,7 @@ export class PdfViewer {
     render() {
         return h("iframe", { class: this.iframeLoaded ? 'loaded' : '', ref: (el) => this.iframeEl = el, src: this.viewerSrc });
     }
-    static get is() { return "hive-pdf-viewer"; }
+    static get is() { return "phemium-pdf-viewer"; }
     static get encapsulation() { return "shadow"; }
     static get properties() { return {
         "element": {
@@ -171,7 +171,7 @@ export class PdfViewer {
             "cancelable": true,
             "composed": true
         }]; }
-    static get style() { return "/**style-placeholder:hive-pdf-viewer:**/"; }
+    static get style() { return "/**style-placeholder:phemium-pdf-viewer:**/"; }
 }
 PdfViewer.CSSVariables = [
     '--pdf-viewer-top-offset',

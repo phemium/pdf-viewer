@@ -110,7 +110,7 @@ class PdfViewer {
     render() {
         return h("iframe", { class: this.iframeLoaded ? 'loaded' : '', ref: (el) => this.iframeEl = el, src: this.viewerSrc });
     }
-    static get is() { return "hive-pdf-viewer"; }
+    static get is() { return "phemium-pdf-viewer"; }
     static get encapsulation() { return "shadow"; }
     static get properties() { return {
         "element": {
@@ -173,11 +173,11 @@ class PdfViewer {
             "cancelable": true,
             "composed": true
         }]; }
-    static get style() { return ".sc-hive-pdf-viewer-h{--pdf-viewer-top-offset:0px;--pdf-viewer-bottom-offset:0px}.sc-hive-pdf-viewer-h, iframe.sc-hive-pdf-viewer{display:block;height:100%;width:100%}iframe.sc-hive-pdf-viewer{border:none;visibility:hidden}iframe.loaded.sc-hive-pdf-viewer{visibility:visible}"; }
+    static get style() { return ".sc-phemium-pdf-viewer-h{--pdf-viewer-top-offset:0px;--pdf-viewer-bottom-offset:0px}.sc-phemium-pdf-viewer-h, iframe.sc-phemium-pdf-viewer{display:block;height:100%;width:100%}iframe.sc-phemium-pdf-viewer{border:none;visibility:hidden}iframe.loaded.sc-phemium-pdf-viewer{visibility:visible}"; }
 }
 PdfViewer.CSSVariables = [
     '--pdf-viewer-top-offset',
     '--pdf-viewer-bottom-offset'
 ];
 
-export { PdfViewer as HivePdfViewer };
+export { PdfViewer as PhemiumPdfViewer };

@@ -12,7 +12,7 @@ import './stencil.core';
 
 export namespace Components {
 
-  interface HivePdfViewer {
+  interface PhemiumPdfViewer {
     'enableSearch': boolean;
     'enableSideDrawer': boolean;
     'enableToolbar': boolean;
@@ -22,7 +22,7 @@ export namespace Components {
     'setScale': (scale: number | "auto" | "page-fit" | "page-width") => void;
     'src': string;
   }
-  interface HivePdfViewerAttributes extends StencilHTMLAttributes {
+  interface PhemiumPdfViewerAttributes extends StencilHTMLAttributes {
     'enableSearch'?: boolean;
     'enableSideDrawer'?: boolean;
     'enableToolbar'?: boolean;
@@ -36,26 +36,26 @@ export namespace Components {
 
 declare global {
   interface StencilElementInterfaces {
-    'HivePdfViewer': Components.HivePdfViewer;
+    'PhemiumPdfViewer': Components.PhemiumPdfViewer;
   }
 
   interface StencilIntrinsicElements {
-    'hive-pdf-viewer': Components.HivePdfViewerAttributes;
+    'phemium-pdf-viewer': Components.PhemiumPdfViewerAttributes;
   }
 
 
-  interface HTMLHivePdfViewerElement extends Components.HivePdfViewer, HTMLStencilElement {}
-  var HTMLHivePdfViewerElement: {
-    prototype: HTMLHivePdfViewerElement;
-    new (): HTMLHivePdfViewerElement;
+  interface HTMLPhemiumPdfViewerElement extends Components.PhemiumPdfViewer, HTMLStencilElement {}
+  var HTMLPhemiumPdfViewerElement: {
+    prototype: HTMLPhemiumPdfViewerElement;
+    new (): HTMLPhemiumPdfViewerElement;
   };
 
   interface HTMLElementTagNameMap {
-    'hive-pdf-viewer': HTMLHivePdfViewerElement
+    'phemium-pdf-viewer': HTMLPhemiumPdfViewerElement
   }
 
   interface ElementTagNameMap {
-    'hive-pdf-viewer': HTMLHivePdfViewerElement;
+    'phemium-pdf-viewer': HTMLPhemiumPdfViewerElement;
   }
 
 
