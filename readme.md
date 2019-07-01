@@ -32,7 +32,6 @@ Once you have all the compiled files inside your project you will need to add th
 
 ```
 <script src='phemium-pdf/pdf-viewer.js'></script>
-
 ```
 Then you can use the custom component like this: 
 
