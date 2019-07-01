@@ -24,17 +24,29 @@ This web component allows you to add PDF rendering support to your web applicati
  npm i https://github.com/phemium/pdf-viewer
 ```
 
-Somewhere in your project (e.g. `main.ts`):
+### AngularJS (1.x)
+
+First of all you need to copy all content from node_modules/@phemium/pdf-viewer/dist into to somewhere else inside your project (e.g. your-app/phemium-pdf).
+
+Once you have all the compiled files inside your project you will need to add the following line inside index.html:
+
 ```
-import { defineCustomElements } from '@phemium/pdf-viewer/dist/loader';
-defineCustomElements(window);
+<script src='phemium-pdf/pdf-viewer.js'></script>
+
 ```
+Then you can use the custom component like this: 
 
 ```
 <phemium-pdf-viewer src="http://www.mydomain.com/example.pdf"></phemium-pdf-viewer>
 ```
 
 ### Angular
+
+Somewhere in your project (e.g. `main.ts`):
+```
+import { defineCustomElements } from '@phemium/pdf-viewer/dist/loader';
+defineCustomElements(window);
+```
 
 Add viewer assets to `angular.json` assets block:
 ```
@@ -50,6 +62,11 @@ Add viewer assets to `angular.json` assets block:
                                 "input": "node_modules/@phemium/pdf-viewer/dist/pdf-viewer/pdf-viewer-assets",
                                 "output": "pdf-viewer-assets"
                             }
+```
+Then you can use the custom component like this: 
+
+```
+<phemium-pdf-viewer src="http://www.mydomain.com/example.pdf"></phemium-pdf-viewer>
 ```
 
 Follow the [Stencil JS Framework Integration](https://stenciljs.com/docs/overview) guide for more info.
