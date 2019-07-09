@@ -2007,17 +2007,15 @@ function webViewerUpdateViewarea(evt) {
 
   if (store && PDFViewerApplication.isInitialViewSet) {
     store.setMultiple({
-      'page': location.pageNumber,
-      'zoom': location.scale,
-      'scrollLeft': location.left,
-      'scrollTop': location.top,
-      'rotation': location.rotation
+      page: location.pageNumber,
+      zoom: location.scale,
+      scrollLeft: location.left,
+      scrollTop: location.top,
+      rotation: location.rotation
     })["catch"](function () {});
   }
 
   var href = PDFViewerApplication.pdfLinkService.getAnchorUrl(location.pdfOpenParams);
-  PDFViewerApplication.appConfig.toolbar.viewBookmark.href = href;
-  PDFViewerApplication.appConfig.secondaryToolbar.viewBookmarkButton.href = href;
   var currentPage = PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication.page - 1);
   var loading = currentPage.renderingState !== _pdf_rendering_queue.RenderingStates.FINISHED;
   PDFViewerApplication.toolbar.updateLoadingIndicatorState(loading);
@@ -3372,7 +3370,7 @@ var DEFAULT_SCALE_VALUE = 'auto';
 exports.DEFAULT_SCALE_VALUE = DEFAULT_SCALE_VALUE;
 var DEFAULT_SCALE = 1.0;
 exports.DEFAULT_SCALE = DEFAULT_SCALE;
-var MIN_SCALE = 0.10;
+var MIN_SCALE = 0.1;
 exports.MIN_SCALE = MIN_SCALE;
 var MAX_SCALE = 10.0;
 exports.MAX_SCALE = MAX_SCALE;
@@ -3436,7 +3434,7 @@ var NullL10n = {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt("return", 'en-us');
+              return _context.abrupt("return", 'es-es');
 
             case 1:
             case "end":
@@ -4378,7 +4376,7 @@ var defaultOptions = {
     kind: OptionKind.VIEWER
   };
   defaultOptions.locale = {
-    value: typeof navigator !== 'undefined' ? navigator.language : 'en-US',
+    value: typeof navigator !== 'undefined' ? navigator.language : 'es-ES',
     kind: OptionKind.VIEWER
   };
 }
@@ -12685,24 +12683,12 @@ function () {
     this.toggleButton = options.toggleButton;
     this.toolbarButtonContainer = options.toolbarButtonContainer;
     this.buttons = [{
-      element: options.presentationModeButton,
-      eventName: 'presentationmode',
-      close: true
-    }, {
-      element: options.openFileButton,
-      eventName: 'openfile',
-      close: true
-    }, {
       element: options.printButton,
       eventName: 'print',
       close: true
     }, {
       element: options.downloadButton,
       eventName: 'download',
-      close: true
-    }, {
-      element: options.viewBookmarkButton,
-      eventName: null,
       close: true
     }, {
       element: options.firstPageButton,
@@ -12732,48 +12718,6 @@ function () {
       eventName: 'switchcursortool',
       eventDetails: {
         tool: _pdf_cursor_tools.CursorTool.HAND
-      },
-      close: true
-    }, {
-      element: options.scrollVerticalButton,
-      eventName: 'switchscrollmode',
-      eventDetails: {
-        mode: _ui_utils.ScrollMode.VERTICAL
-      },
-      close: true
-    }, {
-      element: options.scrollHorizontalButton,
-      eventName: 'switchscrollmode',
-      eventDetails: {
-        mode: _ui_utils.ScrollMode.HORIZONTAL
-      },
-      close: true
-    }, {
-      element: options.scrollWrappedButton,
-      eventName: 'switchscrollmode',
-      eventDetails: {
-        mode: _ui_utils.ScrollMode.WRAPPED
-      },
-      close: true
-    }, {
-      element: options.spreadNoneButton,
-      eventName: 'switchspreadmode',
-      eventDetails: {
-        mode: _ui_utils.SpreadMode.NONE
-      },
-      close: true
-    }, {
-      element: options.spreadOddButton,
-      eventName: 'switchspreadmode',
-      eventDetails: {
-        mode: _ui_utils.SpreadMode.ODD
-      },
-      close: true
-    }, {
-      element: options.spreadEvenButton,
-      eventName: 'switchspreadmode',
-      eventDetails: {
-        mode: _ui_utils.SpreadMode.EVEN
       },
       close: true
     }, {
@@ -13293,16 +13237,6 @@ function () {
         eventBus.dispatch('scalechanged', {
           source: self,
           value: this.value
-        });
-      });
-      items.presentationModeButton.addEventListener('click', function () {
-        eventBus.dispatch('presentationmode', {
-          source: self
-        });
-      });
-      items.openFile.addEventListener('click', function () {
-        eventBus.dispatch('openfile', {
-          source: self
         });
       });
       items.print.addEventListener('click', function () {
