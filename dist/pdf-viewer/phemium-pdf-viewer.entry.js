@@ -1,4 +1,4 @@
-import { h } from '../pdf-viewer.core.js';
+const h = window.PdfViewer.h;
 
 class PdfViewer {
     constructor() {
@@ -87,6 +87,7 @@ class PdfViewer {
         this.viewerContainer = this.iframeEl.contentDocument.body.querySelector('#viewerContainer');
         this.viewerContainer.addEventListener('pagechange', this.handlePageChange.bind(this));
         this.viewerContainer.addEventListener('click', this.handleLinkClick.bind(this));
+        // when the documents within the pdf viewer finish loading
         this.iframeEl.contentDocument.addEventListener('pagesloaded', () => {
             if (this.scale) {
                 this.setScale(this.scale);
@@ -100,6 +101,7 @@ class PdfViewer {
         e.preventDefault();
         const link = e.target.closest('.linkAnnotation > a');
         if (link) {
+            // Ignore internal links to the same document
             if (link.classList.contains('internalLink')) {
                 return;
             }
@@ -173,7 +175,7 @@ class PdfViewer {
             "cancelable": true,
             "composed": true
         }]; }
-    static get style() { return ":host{--pdf-viewer-top-offset:0px;--pdf-viewer-bottom-offset:0px}:host,iframe{display:block;height:100%;width:100%}iframe{border:none;visibility:hidden}iframe.loaded{visibility:visible}"; }
+    static get style() { return ":host {\n  display: block;\n  height: 100%;\n  width: 100%;\n  --pdf-viewer-top-offset: 0px;\n  --pdf-viewer-bottom-offset: 0px; }\n\niframe {\n  display: block;\n  width: 100%;\n  height: 100%;\n  border: none;\n  visibility: hidden; }\n  iframe.loaded {\n    visibility: visible; }"; }
 }
 PdfViewer.CSSVariables = [
     '--pdf-viewer-top-offset',

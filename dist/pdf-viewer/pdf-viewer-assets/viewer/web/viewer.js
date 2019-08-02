@@ -12687,10 +12687,6 @@ function () {
       eventName: 'print',
       close: true
     }, {
-      element: options.downloadButton,
-      eventName: 'download',
-      close: true
-    }, {
       element: options.firstPageButton,
       eventName: 'firstpage',
       close: true
@@ -13241,11 +13237,6 @@ function () {
       });
       items.print.addEventListener('click', function () {
         eventBus.dispatch('print', {
-          source: self
-        });
-      });
-      items.download.addEventListener('click', function () {
-        eventBus.dispatch('download', {
           source: self
         });
       });

@@ -85,6 +85,7 @@ export class PdfViewer {
         this.viewerContainer = this.iframeEl.contentDocument.body.querySelector('#viewerContainer');
         this.viewerContainer.addEventListener('pagechange', this.handlePageChange.bind(this));
         this.viewerContainer.addEventListener('click', this.handleLinkClick.bind(this));
+        // when the documents within the pdf viewer finish loading
         this.iframeEl.contentDocument.addEventListener('pagesloaded', () => {
             if (this.scale) {
                 this.setScale(this.scale);
@@ -98,6 +99,7 @@ export class PdfViewer {
         e.preventDefault();
         const link = e.target.closest('.linkAnnotation > a');
         if (link) {
+            // Ignore internal links to the same document
             if (link.classList.contains('internalLink')) {
                 return;
             }
