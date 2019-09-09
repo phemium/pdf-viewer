@@ -148,7 +148,6 @@ function getViewerConfiguration() {
       viewFind: document.getElementById('viewFind'),
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
-      presentationModeButton: document.getElementById('presentationMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark')
     },
@@ -156,7 +155,6 @@ function getViewerConfiguration() {
       toolbar: document.getElementById('secondaryToolbar'),
       toggleButton: document.getElementById('secondaryToolbarToggle'),
       toolbarButtonContainer: document.getElementById('secondaryToolbarButtonContainer'),
-      presentationModeButton: document.getElementById('secondaryPresentationMode'),
       openFileButton: document.getElementById('secondaryOpenFile'),
       printButton: document.getElementById('secondaryPrint'),
       downloadButton: document.getElementById('secondaryDownload'),
@@ -221,20 +219,20 @@ function getViewerConfiguration() {
       container: document.getElementById('documentPropertiesOverlay'),
       closeButton: document.getElementById('documentPropertiesClose'),
       fields: {
-        'fileName': document.getElementById('fileNameField'),
-        'fileSize': document.getElementById('fileSizeField'),
-        'title': document.getElementById('titleField'),
-        'author': document.getElementById('authorField'),
-        'subject': document.getElementById('subjectField'),
-        'keywords': document.getElementById('keywordsField'),
-        'creationDate': document.getElementById('creationDateField'),
-        'modificationDate': document.getElementById('modificationDateField'),
-        'creator': document.getElementById('creatorField'),
-        'producer': document.getElementById('producerField'),
-        'version': document.getElementById('versionField'),
-        'pageCount': document.getElementById('pageCountField'),
-        'pageSize': document.getElementById('pageSizeField'),
-        'linearized': document.getElementById('linearizedField')
+        fileName: document.getElementById('fileNameField'),
+        fileSize: document.getElementById('fileSizeField'),
+        title: document.getElementById('titleField'),
+        author: document.getElementById('authorField'),
+        subject: document.getElementById('subjectField'),
+        keywords: document.getElementById('keywordsField'),
+        creationDate: document.getElementById('creationDateField'),
+        modificationDate: document.getElementById('modificationDateField'),
+        creator: document.getElementById('creatorField'),
+        producer: document.getElementById('producerField'),
+        version: document.getElementById('versionField'),
+        pageCount: document.getElementById('pageCountField'),
+        pageSize: document.getElementById('pageSizeField'),
+        linearized: document.getElementById('linearizedField')
       }
     },
     errorWrapper: {
@@ -1853,12 +1851,6 @@ function webViewerInitialized() {
 
   if (!PDFViewerApplication.supportsPrinting) {
     appConfig.toolbar.print.classList.add('hidden');
-    appConfig.secondaryToolbar.printButton.classList.add('hidden');
-  }
-
-  if (!PDFViewerApplication.supportsFullscreen) {
-    appConfig.toolbar.presentationModeButton.classList.add('hidden');
-    appConfig.secondaryToolbar.presentationModeButton.classList.add('hidden');
   }
 
   if (PDFViewerApplication.supportsIntegratedFind) {
@@ -12683,10 +12675,6 @@ function () {
     this.toggleButton = options.toggleButton;
     this.toolbarButtonContainer = options.toolbarButtonContainer;
     this.buttons = [{
-      element: options.printButton,
-      eventName: 'print',
-      close: true
-    }, {
       element: options.firstPageButton,
       eventName: 'firstpage',
       close: true
