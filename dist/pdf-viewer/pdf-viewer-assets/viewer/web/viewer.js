@@ -148,6 +148,7 @@ function getViewerConfiguration() {
       viewFind: document.getElementById('viewFind'),
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
+      presentationModeButton: document.getElementById('presentationMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark')
     },
@@ -155,22 +156,14 @@ function getViewerConfiguration() {
       toolbar: document.getElementById('secondaryToolbar'),
       toggleButton: document.getElementById('secondaryToolbarToggle'),
       toolbarButtonContainer: document.getElementById('secondaryToolbarButtonContainer'),
-      openFileButton: document.getElementById('secondaryOpenFile'),
       printButton: document.getElementById('secondaryPrint'),
       downloadButton: document.getElementById('secondaryDownload'),
-      viewBookmarkButton: document.getElementById('secondaryViewBookmark'),
       firstPageButton: document.getElementById('firstPage'),
       lastPageButton: document.getElementById('lastPage'),
       pageRotateCwButton: document.getElementById('pageRotateCw'),
       pageRotateCcwButton: document.getElementById('pageRotateCcw'),
       cursorSelectToolButton: document.getElementById('cursorSelectTool'),
       cursorHandToolButton: document.getElementById('cursorHandTool'),
-      scrollVerticalButton: document.getElementById('scrollVertical'),
-      scrollHorizontalButton: document.getElementById('scrollHorizontal'),
-      scrollWrappedButton: document.getElementById('scrollWrapped'),
-      spreadNoneButton: document.getElementById('spreadNone'),
-      spreadOddButton: document.getElementById('spreadOdd'),
-      spreadEvenButton: document.getElementById('spreadEven'),
       documentPropertiesButton: document.getElementById('documentProperties')
     },
     fullscreen: {
@@ -219,20 +212,20 @@ function getViewerConfiguration() {
       container: document.getElementById('documentPropertiesOverlay'),
       closeButton: document.getElementById('documentPropertiesClose'),
       fields: {
-        fileName: document.getElementById('fileNameField'),
-        fileSize: document.getElementById('fileSizeField'),
-        title: document.getElementById('titleField'),
-        author: document.getElementById('authorField'),
-        subject: document.getElementById('subjectField'),
-        keywords: document.getElementById('keywordsField'),
-        creationDate: document.getElementById('creationDateField'),
-        modificationDate: document.getElementById('modificationDateField'),
-        creator: document.getElementById('creatorField'),
-        producer: document.getElementById('producerField'),
-        version: document.getElementById('versionField'),
-        pageCount: document.getElementById('pageCountField'),
-        pageSize: document.getElementById('pageSizeField'),
-        linearized: document.getElementById('linearizedField')
+        'fileName': document.getElementById('fileNameField'),
+        'fileSize': document.getElementById('fileSizeField'),
+        'title': document.getElementById('titleField'),
+        'author': document.getElementById('authorField'),
+        'subject': document.getElementById('subjectField'),
+        'keywords': document.getElementById('keywordsField'),
+        'creationDate': document.getElementById('creationDateField'),
+        'modificationDate': document.getElementById('modificationDateField'),
+        'creator': document.getElementById('creatorField'),
+        'producer': document.getElementById('producerField'),
+        'version': document.getElementById('versionField'),
+        'pageCount': document.getElementById('pageCountField'),
+        'pageSize': document.getElementById('pageSizeField'),
+        'linearized': document.getElementById('linearizedField')
       }
     },
     errorWrapper: {
@@ -1851,6 +1844,12 @@ function webViewerInitialized() {
 
   if (!PDFViewerApplication.supportsPrinting) {
     appConfig.toolbar.print.classList.add('hidden');
+    appConfig.secondaryToolbar.printButton.classList.add('hidden');
+  }
+
+  if (!PDFViewerApplication.supportsFullscreen) {
+    appConfig.toolbar.presentationModeButton.classList.add('hidden');
+    appConfig.secondaryToolbar.presentationModeButton.classList.add('hidden');
   }
 
   if (PDFViewerApplication.supportsIntegratedFind) {
@@ -1999,15 +1998,17 @@ function webViewerUpdateViewarea(evt) {
 
   if (store && PDFViewerApplication.isInitialViewSet) {
     store.setMultiple({
-      page: location.pageNumber,
-      zoom: location.scale,
-      scrollLeft: location.left,
-      scrollTop: location.top,
-      rotation: location.rotation
+      'page': location.pageNumber,
+      'zoom': location.scale,
+      'scrollLeft': location.left,
+      'scrollTop': location.top,
+      'rotation': location.rotation
     })["catch"](function () {});
   }
 
   var href = PDFViewerApplication.pdfLinkService.getAnchorUrl(location.pdfOpenParams);
+  PDFViewerApplication.appConfig.toolbar.viewBookmark.href = href;
+  href;
   var currentPage = PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication.page - 1);
   var loading = currentPage.renderingState !== _pdf_rendering_queue.RenderingStates.FINISHED;
   PDFViewerApplication.toolbar.updateLoadingIndicatorState(loading);
@@ -2094,7 +2095,6 @@ var webViewerFileInputChange;
 
     var appConfig = PDFViewerApplication.appConfig;
     appConfig.toolbar.viewBookmark.setAttribute('hidden', 'true');
-    appConfig.secondaryToolbar.viewBookmarkButton.setAttribute('hidden', 'true');
     appConfig.toolbar.download.setAttribute('hidden', 'true');
     appConfig.secondaryToolbar.downloadButton.setAttribute('hidden', 'true');
   };
@@ -3362,7 +3362,7 @@ var DEFAULT_SCALE_VALUE = 'auto';
 exports.DEFAULT_SCALE_VALUE = DEFAULT_SCALE_VALUE;
 var DEFAULT_SCALE = 1.0;
 exports.DEFAULT_SCALE = DEFAULT_SCALE;
-var MIN_SCALE = 0.1;
+var MIN_SCALE = 0.10;
 exports.MIN_SCALE = MIN_SCALE;
 var MAX_SCALE = 10.0;
 exports.MAX_SCALE = MAX_SCALE;
@@ -3426,7 +3426,7 @@ var NullL10n = {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt("return", 'es-es');
+              return _context.abrupt("return", 'en-us');
 
             case 1:
             case "end":
@@ -4368,7 +4368,7 @@ var defaultOptions = {
     kind: OptionKind.VIEWER
   };
   defaultOptions.locale = {
-    value: typeof navigator !== 'undefined' ? navigator.language : 'es-ES',
+    value: typeof navigator !== 'undefined' ? navigator.language : 'en-US',
     kind: OptionKind.VIEWER
   };
 }
@@ -12675,6 +12675,14 @@ function () {
     this.toggleButton = options.toggleButton;
     this.toolbarButtonContainer = options.toolbarButtonContainer;
     this.buttons = [{
+      element: options.printButton,
+      eventName: 'print',
+      close: true
+    }, {
+      element: options.downloadButton,
+      eventName: 'download',
+      close: true
+    }, {
       element: options.firstPageButton,
       eventName: 'firstpage',
       close: true
@@ -12787,23 +12795,26 @@ function () {
             eventName = _this2$buttons$button.eventName,
             close = _this2$buttons$button.close,
             eventDetails = _this2$buttons$button.eventDetails;
-        element.addEventListener('click', function (evt) {
-          if (eventName !== null) {
-            var details = {
-              source: _this2
-            };
 
-            for (var property in eventDetails) {
-              details[property] = eventDetails[property];
+        if (element) {
+          element.addEventListener('click', function (evt) {
+            if (eventName !== null) {
+              var details = {
+                source: _this2
+              };
+
+              for (var property in eventDetails) {
+                details[property] = eventDetails[property];
+              }
+
+              _this2.eventBus.dispatch(eventName, details);
             }
 
-            _this2.eventBus.dispatch(eventName, details);
-          }
-
-          if (close) {
-            _this2.close();
-          }
-        });
+            if (close) {
+              _this2.close();
+            }
+          });
+        }
       };
 
       for (var button in this.buttons) {
@@ -13223,8 +13234,23 @@ function () {
           value: this.value
         });
       });
+      items.presentationModeButton.addEventListener('click', function () {
+        eventBus.dispatch('presentationmode', {
+          source: self
+        });
+      });
+      items.openFile.addEventListener('click', function () {
+        eventBus.dispatch('openfile', {
+          source: self
+        });
+      });
       items.print.addEventListener('click', function () {
         eventBus.dispatch('print', {
+          source: self
+        });
+      });
+      items.download.addEventListener('click', function () {
+        eventBus.dispatch('download', {
           source: self
         });
       });
@@ -14186,6 +14212,27 @@ function () {
   }, {
     key: "download",
     value: function download(blob, url, filename) {
+      try {
+        var ua = navigator.userAgent;
+
+        if (/IEMobile|Windows Phone|Lumia/i.test(ua) || /iPhone|iP[oa]d/.test(ua) || /Android/.test(ua) || /BlackBerry|PlayBook|BB10/.test(ua) || /Mobile Safari/.test(ua) || /webOS|Mobile|Tablet|Opera Mini|\bCrMo\/|Opera Mobi/i.test(ua)) {
+          console.log("es un smartphone");
+
+          if (!blob) {
+            console.log("blob is null");
+            return;
+          }
+
+          window.parent.postMessage({
+            "blob": blob,
+            "filename": filename
+          }, "*");
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       if (navigator.msSaveBlob) {
         if (!navigator.msSaveBlob(blob, filename)) {
           this.downloadUrl(url, filename);
