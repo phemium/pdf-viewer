@@ -19,6 +19,7 @@ export class PdfViewer {
     @Prop({ context: 'window' }) window: Window;
 
     @Prop() src: string;
+    @Prop() file: string;
     @Prop() page: number;
 
     @Prop() enableToolbar = true;
@@ -103,10 +104,12 @@ export class PdfViewer {
     @State() iframeLoaded: boolean;
 
     get viewerSrc() {
-        if (this.page) {
-            return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}#page=${this.page}`;
-        }
-        return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
+
+        if (this.src === '' && this.file) return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${this.file}`;
+
+        if (this.page && this.src) return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}#page=${this.page}`;
+        
+        if (this.file === '' && this.src) return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
     }
 
     componentDidLoad() {

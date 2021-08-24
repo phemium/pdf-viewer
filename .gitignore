@@ -12,6 +12,7 @@ log.txt
 
 .stencil/
 .idea/
+.dist/
 .vscode/
 .sass-cache/
 .versions/

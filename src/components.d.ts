@@ -16,6 +16,7 @@ export namespace Components {
     'enableSearch': boolean;
     'enableSideDrawer': boolean;
     'enableToolbar': boolean;
+    'file': string;
     'page': number;
     'print': () => Promise<void>;
     'scale': 'auto' | 'page-fit' | 'page-width' | number;
@@ -26,6 +27,7 @@ export namespace Components {
     'enableSearch'?: boolean;
     'enableSideDrawer'?: boolean;
     'enableToolbar'?: boolean;
+    'file'?: string;
     'onOnLinkClick'?: (event: CustomEvent<string>) => void;
     'onPageChange'?: (event: CustomEvent<number>) => void;
     'page'?: number;

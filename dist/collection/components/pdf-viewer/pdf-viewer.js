@@ -54,10 +54,12 @@ export class PdfViewer {
         }
     }
     get viewerSrc() {
-        if (this.page) {
+        if (this.src === '' && this.file)
+            return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${this.file}`;
+        if (this.page && this.src)
             return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}#page=${this.page}`;
-        }
-        return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
+        if (this.file === '' && this.src)
+            return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
     }
     componentDidLoad() {
         this.iframeEl.onload = () => {
@@ -128,6 +130,10 @@ export class PdfViewer {
             "type": Boolean,
             "attr": "enable-toolbar",
             "watchCallbacks": ["updateToolbarVisibility"]
+        },
+        "file": {
+            "type": String,
+            "attr": "file"
         },
         "iframeLoaded": {
             "state": true
