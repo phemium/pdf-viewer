@@ -1,5 +1,5 @@
 import '../../stencil.core';
-import { EventEmitter } from '../../stencil.core';
+import { EventEmitter } from "../../stencil.core";
 export declare class PdfViewer {
     static CSSVariables: string[];
     element: HTMLElement;
@@ -19,9 +19,9 @@ export declare class PdfViewer {
     pageChange: EventEmitter<number>;
     onLinkClick: EventEmitter<string>;
     print(): Promise<void>;
-    scale: 'auto' | 'page-fit' | 'page-width' | number;
+    scale: "auto" | "page-fit" | "page-width" | number;
     updateScale(): void;
-    setScale(scale: 'auto' | 'page-fit' | 'page-width' | number): void;
+    setScale(scale: "auto" | "page-fit" | "page-width" | number): void;
     iframeEl: HTMLIFrameElement;
     viewerContainer: HTMLElement;
     iframeLoaded: boolean;
@@ -30,6 +30,7 @@ export declare class PdfViewer {
     setCSSVariables(): void;
     initButtonVisibility(): void;
     addEventListeners(): void;
+    handleDownload(): void;
     handlePageChange(e: any): void;
     handleLinkClick(e: any): void;
     render(): JSX.Element;

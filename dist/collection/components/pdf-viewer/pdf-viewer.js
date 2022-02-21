@@ -7,38 +7,38 @@ export class PdfViewer {
     updateToolbarVisibility() {
         if (this.toolbarEl) {
             if (this.enableToolbar) {
-                this.toolbarEl.classList.remove('hidden');
+                this.toolbarEl.classList.remove("hidden");
             }
             else {
-                this.toolbarEl.classList.add('hidden');
-                this.iframeEl.contentDocument.documentElement.style.setProperty('--toolbar-height', '0px');
+                this.toolbarEl.classList.add("hidden");
+                this.iframeEl.contentDocument.documentElement.style.setProperty("--toolbar-height", "0px");
             }
         }
     }
     updateSideDrawerVisibility() {
         if (this.sidebarToggleEl) {
             if (this.enableSideDrawer) {
-                this.sidebarToggleEl.classList.remove('hidden');
+                this.sidebarToggleEl.classList.remove("hidden");
             }
             else {
-                this.sidebarToggleEl.classList.add('hidden');
+                this.sidebarToggleEl.classList.add("hidden");
             }
         }
     }
     updateSearchVisibility() {
         if (this.searchToggleEl) {
             if (this.enableSearch) {
-                this.searchToggleEl.classList.remove('hidden');
+                this.searchToggleEl.classList.remove("hidden");
             }
             else {
-                this.searchToggleEl.classList.add('hidden');
+                this.searchToggleEl.classList.add("hidden");
             }
         }
     }
     print() {
         return new Promise((resolve) => {
             this.iframeEl.contentWindow.print();
-            this.iframeEl.contentWindow.addEventListener('afterprint', () => {
+            this.iframeEl.contentWindow.addEventListener("afterprint", () => {
                 resolve();
             }, { once: true });
         });
@@ -49,7 +49,8 @@ export class PdfViewer {
     setScale(scale) {
         const contentWindow = this.iframeEl.contentWindow;
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = this.iframeEl.contentWindow.PDFViewerApplication;
+            const { pdfViewer } = this.iframeEl.contentWindow
+                .PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
         }
     }
@@ -74,39 +75,58 @@ export class PdfViewer {
         }
     }
     initButtonVisibility() {
-        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector('#toolbarContainer');
-        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector('#sidebarToggle');
-        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector('#viewFind');
+        this.toolbarEl =
+            this.iframeEl.contentDocument.body.querySelector("#toolbarContainer");
+        this.sidebarToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
+        this.searchToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#viewFind");
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
     addEventListeners() {
-        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector('#viewerContainer');
-        this.viewerContainer.addEventListener('pagechange', this.handlePageChange.bind(this));
-        this.viewerContainer.addEventListener('click', this.handleLinkClick.bind(this));
-        this.iframeEl.contentDocument.addEventListener('pagesloaded', () => {
+        this.viewerContainer =
+            this.iframeEl.contentDocument.body.querySelector("#viewerContainer");
+        this.viewerContainer.addEventListener("pagechange", this.handlePageChange.bind(this));
+        this.viewerContainer.addEventListener("click", this.handleLinkClick.bind(this));
+        this.iframeEl.contentDocument.addEventListener("pagesloaded", () => {
             if (this.scale) {
                 this.setScale(this.scale);
             }
         });
+        const contentWindow = this.iframeEl.contentWindow;
+        if (contentWindow && contentWindow.PDFViewerApplication) {
+            contentWindow.PDFViewerApplication.initializedPromise.then(() => {
+                console.log("PDF Initialized");
+                contentWindow.PDFViewerApplication.eventBus.on("download", this.handleDownload.bind(this));
+            });
+        }
+        else {
+            console.error("EventBus not found");
+        }
+    }
+    handleDownload() {
+        if (this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)) {
+            this.window.open(this.src);
+        }
     }
     handlePageChange(e) {
         this.pageChange.emit(e.pageNumber);
     }
     handleLinkClick(e) {
         e.preventDefault();
-        const link = e.target.closest('.linkAnnotation > a');
+        const link = e.target.closest(".linkAnnotation > a");
         if (link) {
-            if (link.classList.contains('internalLink')) {
+            if (link.classList.contains("internalLink")) {
                 return;
             }
-            const href = e.target.closest('.linkAnnotation > a').href || '';
+            const href = e.target.closest(".linkAnnotation > a").href || "";
             this.onLinkClick.emit(href);
         }
     }
     render() {
-        return h("iframe", { class: this.iframeLoaded ? 'loaded' : '', ref: (el) => this.iframeEl = el, src: this.viewerSrc });
+        return (h("iframe", { class: this.iframeLoaded ? "loaded" : "", ref: (el) => (this.iframeEl = el), src: this.viewerSrc }));
     }
     static get is() { return "phemium-pdf-viewer"; }
     static get encapsulation() { return "shadow"; }
@@ -174,6 +194,6 @@ export class PdfViewer {
     static get style() { return "/**style-placeholder:phemium-pdf-viewer:**/"; }
 }
 PdfViewer.CSSVariables = [
-    '--pdf-viewer-top-offset',
-    '--pdf-viewer-bottom-offset'
+    "--pdf-viewer-top-offset",
+    "--pdf-viewer-bottom-offset",
 ];

@@ -1,22 +1,30 @@
-import { Component, Prop, Element, Event, EventEmitter, Watch, Method, State } from '@stencil/core';
+import {
+    Component,
+    Prop,
+    Element,
+    Event,
+    EventEmitter,
+    Watch,
+    Method,
+    State,
+} from "@stencil/core";
 
 @Component({
-    tag: 'phemium-pdf-viewer',
-    styleUrl: 'pdf-viewer.scss',
+    tag: "phemium-pdf-viewer",
+    styleUrl: "pdf-viewer.scss",
     shadow: true,
-    assetsDir: 'pdf-viewer-assets'
+    assetsDir: "pdf-viewer-assets",
 })
 export class PdfViewer {
-
     static CSSVariables = [
-        '--pdf-viewer-top-offset',
-        '--pdf-viewer-bottom-offset'
+        "--pdf-viewer-top-offset",
+        "--pdf-viewer-bottom-offset",
     ];
 
     @Element() element: HTMLElement;
 
-    @Prop({ context: 'resourcesUrl' }) resourcesUrl: string;
-    @Prop({ context: 'window' }) window: Window;
+    @Prop({ context: "resourcesUrl" }) resourcesUrl: string;
+    @Prop({ context: "window" }) window: Window;
 
     @Prop() src: string;
     @Prop() page: number;
@@ -24,15 +32,17 @@ export class PdfViewer {
     @Prop() enableToolbar = true;
     toolbarEl: HTMLElement;
 
-    @Watch('enableToolbar')
+    @Watch("enableToolbar")
     updateToolbarVisibility() {
         if (this.toolbarEl) {
             if (this.enableToolbar) {
-                this.toolbarEl.classList.remove('hidden');
-            }
-            else {
-                this.toolbarEl.classList.add('hidden');
-                this.iframeEl.contentDocument.documentElement.style.setProperty('--toolbar-height', '0px');
+                this.toolbarEl.classList.remove("hidden");
+            } else {
+                this.toolbarEl.classList.add("hidden");
+                this.iframeEl.contentDocument.documentElement.style.setProperty(
+                    "--toolbar-height",
+                    "0px"
+                );
             }
         }
     }
@@ -40,14 +50,13 @@ export class PdfViewer {
     @Prop() enableSideDrawer = true;
     sidebarToggleEl: HTMLElement;
 
-    @Watch('enableSideDrawer')
+    @Watch("enableSideDrawer")
     updateSideDrawerVisibility() {
         if (this.sidebarToggleEl) {
             if (this.enableSideDrawer) {
-                this.sidebarToggleEl.classList.remove('hidden');
-            }
-            else {
-                this.sidebarToggleEl.classList.add('hidden');
+                this.sidebarToggleEl.classList.remove("hidden");
+            } else {
+                this.sidebarToggleEl.classList.add("hidden");
             }
         }
     }
@@ -55,14 +64,13 @@ export class PdfViewer {
     @Prop() enableSearch = true;
     searchToggleEl: HTMLElement;
 
-    @Watch('enableSearch')
+    @Watch("enableSearch")
     updateSearchVisibility() {
         if (this.searchToggleEl) {
             if (this.enableSearch) {
-                this.searchToggleEl.classList.remove('hidden');
-            }
-            else {
-                this.searchToggleEl.classList.add('hidden');
+                this.searchToggleEl.classList.remove("hidden");
+            } else {
+                this.searchToggleEl.classList.add("hidden");
             }
         }
     }
@@ -74,25 +82,30 @@ export class PdfViewer {
     print() {
         return new Promise<void>((resolve) => {
             this.iframeEl.contentWindow.print();
-            this.iframeEl.contentWindow.addEventListener('afterprint', () => {
-                resolve();
-            }, { once: true })
-        })
+            this.iframeEl.contentWindow.addEventListener(
+                "afterprint",
+                () => {
+                    resolve();
+                },
+                { once: true }
+            );
+        });
     }
 
-    @Prop() scale: 'auto' | 'page-fit' | 'page-width' | number;
+    @Prop() scale: "auto" | "page-fit" | "page-width" | number;
 
-    @Watch('scale')
+    @Watch("scale")
     updateScale() {
         this.setScale(this.scale);
     }
 
     @Method()
-    setScale(scale: 'auto' | 'page-fit' | 'page-width' | number) {
-        const contentWindow = (this.iframeEl.contentWindow as any);
+    setScale(scale: "auto" | "page-fit" | "page-width" | number) {
+        const contentWindow = this.iframeEl.contentWindow as any;
 
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = (this.iframeEl.contentWindow as any).PDFViewerApplication;
+            const { pdfViewer } = (this.iframeEl.contentWindow as any)
+                .PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
         }
     }
@@ -104,9 +117,17 @@ export class PdfViewer {
 
     get viewerSrc() {
         if (this.page) {
-            return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}#page=${this.page}`;
+            return `${
+                this.resourcesUrl
+            }pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(
+                this.src
+            )}#page=${this.page}`;
         }
-        return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
+        return `${
+            this.resourcesUrl
+        }pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(
+            this.src
+        )}`;
     }
 
     componentDidLoad() {
@@ -115,36 +136,76 @@ export class PdfViewer {
             this.initButtonVisibility();
             this.addEventListeners();
             this.iframeLoaded = true;
-        }
+        };
     }
 
     setCSSVariables() {
         for (let i = 0; i < PdfViewer.CSSVariables.length; i++) {
-            const value = getComputedStyle(this.element).getPropertyValue(PdfViewer.CSSVariables[i]);
-            this.iframeEl.contentDocument.documentElement.style.setProperty(PdfViewer.CSSVariables[i], value);
+            const value = getComputedStyle(this.element).getPropertyValue(
+                PdfViewer.CSSVariables[i]
+            );
+            this.iframeEl.contentDocument.documentElement.style.setProperty(
+                PdfViewer.CSSVariables[i],
+                value
+            );
         }
     }
 
     initButtonVisibility() {
-        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector('#toolbarContainer');
-        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector('#sidebarToggle');
-        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector('#viewFind');
+        this.toolbarEl =
+            this.iframeEl.contentDocument.body.querySelector(
+                "#toolbarContainer"
+            );
+        this.sidebarToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
+        this.searchToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#viewFind");
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
 
     addEventListeners() {
-        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector('#viewerContainer')
-        this.viewerContainer.addEventListener('pagechange', this.handlePageChange.bind(this));
-        this.viewerContainer.addEventListener('click', this.handleLinkClick.bind(this));
+        this.viewerContainer =
+            this.iframeEl.contentDocument.body.querySelector(
+                "#viewerContainer"
+            );
+        this.viewerContainer.addEventListener(
+            "pagechange",
+            this.handlePageChange.bind(this)
+        );
+        this.viewerContainer.addEventListener(
+            "click",
+            this.handleLinkClick.bind(this)
+        );
 
         // when the documents within the pdf viewer finish loading
-        this.iframeEl.contentDocument.addEventListener('pagesloaded', () => {
+        this.iframeEl.contentDocument.addEventListener("pagesloaded", () => {
             if (this.scale) {
                 this.setScale(this.scale);
             }
         });
+
+        const contentWindow = this.iframeEl.contentWindow as any;
+        if (contentWindow && contentWindow.PDFViewerApplication) {
+            contentWindow.PDFViewerApplication.initializedPromise.then(() => {
+                console.log("PDF Initialized");
+                contentWindow.PDFViewerApplication.eventBus.on(
+                    "download",
+                    this.handleDownload.bind(this)
+                );
+            });
+        } else {
+            console.error("EventBus not found");
+        }
+    }
+
+    handleDownload() {
+        if (
+            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)
+        ) {
+            this.window.open(this.src);
+        }
     }
 
     handlePageChange(e: any) {
@@ -153,19 +214,25 @@ export class PdfViewer {
 
     handleLinkClick(e: any) {
         e.preventDefault();
-        const link = (e.target as any).closest('.linkAnnotation > a');
+        const link = (e.target as any).closest(".linkAnnotation > a");
         if (link) {
             // Ignore internal links to the same document
-            if (link.classList.contains('internalLink')) {
+            if (link.classList.contains("internalLink")) {
                 return;
             }
-            const href = (e.target as any).closest('.linkAnnotation > a').href || '';
+            const href =
+                (e.target as any).closest(".linkAnnotation > a").href || "";
             this.onLinkClick.emit(href);
         }
     }
 
     render() {
-        return <iframe class={this.iframeLoaded ? 'loaded' : ''} ref={(el) => this.iframeEl = el as HTMLIFrameElement} src={this.viewerSrc}></iframe>;
+        return (
+            <iframe
+                class={this.iframeLoaded ? "loaded" : ""}
+                ref={(el) => (this.iframeEl = el as HTMLIFrameElement)}
+                src={this.viewerSrc}
+            ></iframe>
+        );
     }
-
 }

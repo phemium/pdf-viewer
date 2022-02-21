@@ -18,7 +18,7 @@ export namespace Components {
     'enableToolbar': boolean;
     'page': number;
     'print': () => Promise<void>;
-    'scale': 'auto' | 'page-fit' | 'page-width' | number;
+    'scale': "auto" | "page-fit" | "page-width" | number;
     'setScale': (scale: number | "auto" | "page-fit" | "page-width") => void;
     'src': string;
   }
@@ -29,7 +29,7 @@ export namespace Components {
     'onOnLinkClick'?: (event: CustomEvent<string>) => void;
     'onPageChange'?: (event: CustomEvent<number>) => void;
     'page'?: number;
-    'scale'?: 'auto' | 'page-fit' | 'page-width' | number;
+    'scale'?: "auto" | "page-fit" | "page-width" | number;
     'src'?: string;
   }
 }
