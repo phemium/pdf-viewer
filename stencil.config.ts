@@ -12,5 +12,10 @@ export const config: Config = {
     },
     plugins: [
         sass()
+    ],
+    copy: [
+        {
+            src: 'package.json', dest: '../package.json'
+        }
     ]
 };

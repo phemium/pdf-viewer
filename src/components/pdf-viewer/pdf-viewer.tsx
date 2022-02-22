@@ -186,24 +186,29 @@ export class PdfViewer {
             }
         });
 
-        const contentWindow = this.iframeEl.contentWindow as any;
-        if (contentWindow && contentWindow.PDFViewerApplication) {
-            contentWindow.PDFViewerApplication.initializedPromise.then(() => {
-                console.log("PDF Initialized");
-                contentWindow.PDFViewerApplication.eventBus.on(
-                    "download",
-                    this.handleDownload.bind(this)
-                );
-            });
-        } else {
-            console.error("EventBus not found");
+        
+        if (
+            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)
+        ) {
+            const contentWindow = this.iframeEl.contentWindow as any;
+            if (contentWindow && contentWindow.PDFViewerApplication) {
+                contentWindow.PDFViewerApplication.initializedPromise.then(() => {
+                    console.log("PDF Initialized");
+                    contentWindow.PDFViewerApplication.eventBus.on(
+                        "download",
+                        this.handleDownload.bind(this)
+                    );
+                });
+            } else {
+                console.error("EventBus not found");
+            }
         }
     }
 
     handleDownload() {
-        if (
-            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)
-        ) {
+        if ((this.iframeEl.contentWindow as any).top.cordova && (this.iframeEl.contentWindow as any).top.cordova.InAppBrowser) {
+            (this.iframeEl.contentWindow as any).top.cordova.InAppBrowser.open(this.src, '_system', 'location=yes')
+        } else {
             this.window.open(this.src);
         }
     }
