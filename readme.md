@@ -15,13 +15,23 @@ This web component allows you to add PDF rendering support to your web applicati
 - `git submodule update --init --recursive`
 - `cd pdf.js && npm i`
 
-## Production Build
-- `npm run build`
+## BUILD PDF.JS
+The following steps must be executed with node 14.14.0
+- `pdf.js:install"`
+- `pdf.js:build"`
+## BUILD WEB COMPONENT
+The following steps must be executed with node 10.10.0 
+pdf.js must be builded first
+- `prepare-assets"`
+- `build:stencil`
+- `copy-package`
 
+## PUBLISH
+- `cd dist && npm publish --access public`
 ## Usage
 
 ```bash
- npm i https://github.com/phemium/pdf-viewer
+ npm i @phemium-costaisa/pdf-viewer
 ```
 
 ### AngularJS (1.x)
