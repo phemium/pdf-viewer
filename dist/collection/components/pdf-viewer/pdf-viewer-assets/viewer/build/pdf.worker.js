@@ -33402,7 +33402,6 @@ var PartialEvaluator = /*#__PURE__*/function () {
                 if (Number.isNaN(code) && Number.isInteger(parseInt(codeStr, 16))) {
                   return this._simpleFontToUnicode(properties, true);
                 }
-              }
 
               break;
 

@@ -37,6 +37,10 @@ pdf.js must be builded first
 
 -   `cd dist && npm publish --access public`
 
+## PUBLISH
+
+-   `cd dist && npm publish --access public`
+
 ## Usage
 
 ```bash
