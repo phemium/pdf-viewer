@@ -33,6 +33,8 @@ pdf.js must be builded first
 -   `build:stencil`
 -   `copy-package`
 
+## FIX CORS NOTE
+Comment line with validateFileURL(file); in folder pdf.js file pdf.js
 ## PUBLISH
 
 -   `cd dist && npm publish --access public`
