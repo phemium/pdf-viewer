@@ -5,23 +5,42 @@
 This web component allows you to add PDF rendering support to your web applications.
 
 ## Features
-- Rendering PDFs on web (Angular, Ionic, React, Stencil, etc.)
-- Search
-- Fit to Page / Fit to Width
-- Side panel for quick thumbnail navigation
+
+-   Rendering PDFs on web (Angular, Ionic, React, Stencil, etc.)
+-   Search
+-   Fit to Page / Fit to Width
+-   Side panel for quick thumbnail navigation
 
 ## Installation for development
-- `npm i`
-- `git submodule update --init --recursive`
-- `cd pdf.js && npm i`
 
-## Production Build
-- `npm run build`
+-   `npm i`
+-   `git submodule update --init --recursive`
+-   `cd pdf.js && npm i`
+
+## BUILD PDF.JS
+
+The following steps must be executed with node 14.14.0
+
+-   `pdf.js:install`
+-   `pdf.js:build`
+
+## BUILD WEB COMPONENT
+
+The following steps must be executed with node 10.10.0
+pdf.js must be builded first
+
+-   `prepare-assets`
+-   `build:stencil`
+-   `copy-package`
+
+## PUBLISH
+
+-   `cd dist && npm publish --access public`
 
 ## Usage
 
 ```bash
- npm i https://github.com/phemium/pdf-viewer
+npm i @phemium-costaisa/pdf-viewer
 ```
 
 ### AngularJS (1.x)
@@ -33,7 +52,8 @@ Once you have all the compiled files inside your project you will need to add th
 ```
 <script src='phemium-pdf/pdf-viewer.js'></script>
 ```
-Then you can use the custom component like this: 
+
+Then you can use the custom component like this:
 
 ```
 <phemium-pdf-viewer src="http://www.mydomain.com/example.pdf"></phemium-pdf-viewer>
@@ -42,12 +62,14 @@ Then you can use the custom component like this:
 ### Angular
 
 Somewhere in your project (e.g. `main.ts`):
+
 ```
-import { defineCustomElements } from '@phemium/pdf-viewer/dist/loader';
+import { defineCustomElements } from '@phemium-costaisa/pdf-viewer/loader';
 defineCustomElements(window);
 ```
 
 Add viewer assets to `angular.json` assets block:
+
 ```
 {
     "projects": {
@@ -58,11 +80,12 @@ Add viewer assets to `angular.json` assets block:
                         "assets": [
                             {
                                 "glob": "**/*",
-                                "input": "node_modules/@phemium/pdf-viewer/dist/pdf-viewer/pdf-viewer-assets",
+                                "input": "node_modules/@phemium-costaisa/pdf-viewer/pdf-viewer/pdf-viewer-assets",
                                 "output": "pdf-viewer-assets"
                             }
 ```
-Then you can use the custom component like this: 
+
+Then you can use the custom component like this:
 
 ```
 <phemium-pdf-viewer src="http://www.mydomain.com/example.pdf"></phemium-pdf-viewer>
@@ -71,18 +94,20 @@ Then you can use the custom component like this:
 Follow the [Stencil JS Framework Integration](https://stenciljs.com/docs/overview) guide for more info.
 
 ## Properties
-|Property|Default|Description
-:---:|:---:|:---:
-|`src`||The PDF web address location (http, https)|
-|`page`|`1`|The default page index.|
-|`enableToolbar`|`true`|If the toolbar is available for display.|
-|`enableSideDrawer`|`true`|If the side drawer UI (and button) is available for display.|
-|`enableSearch`|`true`|If the document can be searched through. Hides the button when false.|
+
+|      Property      | Default |                              Description                              |
+| :----------------: | :-----: | :-------------------------------------------------------------------: |
+|       `src`        |         |              The PDF web address location (http, https)               |
+|       `page`       |   `1`   |                        The default page index.                        |
+|  `enableToolbar`   | `true`  |               If the toolbar is available for display.                |
+| `enableSideDrawer` | `true`  |     If the side drawer UI (and button) is available for display.      |
+|   `enableSearch`   | `true`  | If the document can be searched through. Hides the button when false. |
 
 ### Events
-|Event|Description|
-:---:|:---:
-|`onLinkClick(href: string)`|Emits the `href` clicked when it's not an internal document annotation.|
-|`pageChange(currentPage: number)`|Emits the current page number when the current page changes.|
+
+|               Event               |                               Description                               |
+| :-------------------------------: | :---------------------------------------------------------------------: |
+|    `onLinkClick(href: string)`    | Emits the `href` clicked when it's not an internal document annotation. |
+| `pageChange(currentPage: number)` |      Emits the current page number when the current page changes.       |
 
 ---

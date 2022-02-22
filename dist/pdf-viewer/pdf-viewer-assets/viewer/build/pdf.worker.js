@@ -117,7 +117,7 @@ class WorkerMessageHandler {
     const WorkerTasks = [];
     const verbosity = (0, _util.getVerbosityLevel)();
     const apiVersion = docParams.apiVersion;
-    const workerVersion = '2.13.178';
+    const workerVersion = '2.13.0';
 
     if (apiVersion !== workerVersion) {
       throw new Error(`The API version "${apiVersion}" does not match ` + `the Worker version "${workerVersion}".`);
@@ -3727,7 +3727,7 @@ class Page {
       return value;
     }
 
-    if (value.length === 1 || !(value[0] instanceof _primitives.Dict)) {
+    if (value.length === 1 || !(0, _primitives.isDict)(value[0])) {
       return value[0];
     }
 
@@ -4657,7 +4657,7 @@ class PDFDocument {
       (0, _util.info)("The document information dictionary is invalid.");
     }
 
-    if (infoDict instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(infoDict)) {
       for (const key of infoDict.getKeys()) {
         const value = infoDict.get(key);
 
@@ -4672,7 +4672,7 @@ class PDFDocument {
 
           if ((0, _util.isString)(value)) {
             customValue = (0, _util.stringToPDFString)(value);
-          } else if (value instanceof _primitives.Name || (0, _util.isNum)(value) || (0, _util.isBool)(value)) {
+          } else if ((0, _primitives.isName)(value) || (0, _util.isNum)(value) || (0, _util.isBool)(value)) {
             customValue = value;
           } else {
             (0, _util.info)(`Unsupported value in document info for (custom) "${key}".`);
@@ -18162,13 +18162,13 @@ class AnnotationFactory {
   static _create(xref, ref, pdfManager, idFactory, acroForm, collectFields, pageIndex = -1) {
     const dict = xref.fetchIfRef(ref);
 
-    if (!(dict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(dict)) {
       return undefined;
     }
 
     const id = ref instanceof _primitives.Ref ? ref.toString() : `annot_${idFactory.createObjId()}`;
     let subtype = dict.get("Subtype");
-    subtype = subtype instanceof _primitives.Name ? subtype.name : null;
+    subtype = (0, _primitives.isName)(subtype) ? subtype.name : null;
     const parameters = {
       xref,
       ref,
@@ -18193,7 +18193,7 @@ class AnnotationFactory {
           dict,
           key: "FT"
         });
-        fieldType = fieldType instanceof _primitives.Name ? fieldType.name : null;
+        fieldType = (0, _primitives.isName)(fieldType) ? fieldType.name : null;
 
         switch (fieldType) {
           case "Tx":
@@ -18274,7 +18274,7 @@ class AnnotationFactory {
     try {
       const annotDict = await xref.fetchIfRefAsync(ref);
 
-      if (!(annotDict instanceof _primitives.Dict)) {
+      if (!(0, _primitives.isDict)(annotDict)) {
         return -1;
       }
 
@@ -18555,7 +18555,7 @@ class Annotation {
   setBorderStyle(borderStyle) {
     this.borderStyle = new AnnotationBorderStyle();
 
-    if (!(borderStyle instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(borderStyle)) {
       return;
     }
 
@@ -18589,7 +18589,7 @@ class Annotation {
     this.appearance = null;
     const appearanceStates = dict.get("AP");
 
-    if (!(appearanceStates instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(appearanceStates)) {
       return;
     }
 
@@ -18600,13 +18600,13 @@ class Annotation {
       return;
     }
 
-    if (!(normalAppearanceState instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(normalAppearanceState)) {
       return;
     }
 
     const as = dict.get("AS");
 
-    if (!(as instanceof _primitives.Name) || !normalAppearanceState.has(as.name)) {
+    if (!(0, _primitives.isName)(as) || !normalAppearanceState.has(as.name)) {
       return;
     }
 
@@ -18745,7 +18745,7 @@ class AnnotationBorderStyle {
   }
 
   setWidth(width, rect = [0, 0, 0, 0]) {
-    if (width instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(width)) {
       this.width = 0;
       return;
     }
@@ -18766,7 +18766,7 @@ class AnnotationBorderStyle {
   }
 
   setStyle(style) {
-    if (!(style instanceof _primitives.Name)) {
+    if (!(0, _primitives.isName)(style)) {
       return;
     }
 
@@ -18851,7 +18851,7 @@ class MarkupAnnotation extends Annotation {
       const rawIRT = dict.getRaw("IRT");
       this.data.inReplyTo = rawIRT instanceof _primitives.Ref ? rawIRT.toString() : null;
       const rt = dict.get("RT");
-      this.data.replyType = rt instanceof _primitives.Name ? rt.name : _util.AnnotationReplyType.REPLY;
+      this.data.replyType = (0, _primitives.isName)(rt) ? rt.name : _util.AnnotationReplyType.REPLY;
     }
 
     if (this.data.replyType === _util.AnnotationReplyType.GROUP) {
@@ -19041,7 +19041,7 @@ class WidgetAnnotation extends Annotation {
       dict,
       key: "FT"
     });
-    data.fieldType = fieldType instanceof _primitives.Name ? fieldType.name : null;
+    data.fieldType = (0, _primitives.isName)(fieldType) ? fieldType.name : null;
     const localResources = (0, _core_utils.getInheritableProperty)({
       dict,
       key: "DR"
@@ -19074,7 +19074,7 @@ class WidgetAnnotation extends Annotation {
   _decodeFormValue(formValue) {
     if (Array.isArray(formValue)) {
       return formValue.filter(item => (0, _util.isString)(item)).map(item => (0, _util.stringToPDFString)(item));
-    } else if (formValue instanceof _primitives.Name) {
+    } else if ((0, _primitives.isName)(formValue)) {
       return (0, _util.stringToPDFString)(formValue.name);
     } else if ((0, _util.isString)(formValue)) {
       return (0, _util.stringToPDFString)(formValue);
@@ -19147,7 +19147,7 @@ class WidgetAnnotation extends Annotation {
     } = evaluator;
     const dict = xref.fetchIfRef(this.ref);
 
-    if (!(dict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(dict)) {
       return null;
     }
 
@@ -19665,7 +19665,7 @@ class ButtonWidgetAnnotation extends WidgetAnnotation {
 
     const dict = evaluator.xref.fetchIfRef(this.ref);
 
-    if (!(dict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(dict)) {
       return null;
     }
 
@@ -19716,7 +19716,7 @@ class ButtonWidgetAnnotation extends WidgetAnnotation {
 
     const dict = evaluator.xref.fetchIfRef(this.ref);
 
-    if (!(dict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(dict)) {
       return null;
     }
 
@@ -19743,7 +19743,7 @@ class ButtonWidgetAnnotation extends WidgetAnnotation {
         parentBuffer = [`${this.parent.num} ${this.parent.gen} obj\n`];
         (0, _writer.writeDict)(parent, parentBuffer, parentTransform);
         parentBuffer.push("\nendobj\n");
-      } else if (this.parent instanceof _primitives.Dict) {
+      } else if ((0, _primitives.isDict)(this.parent)) {
         this.parent.set("V", name);
       }
     }
@@ -19824,13 +19824,13 @@ class ButtonWidgetAnnotation extends WidgetAnnotation {
   _processCheckBox(params) {
     const customAppearance = params.dict.get("AP");
 
-    if (!(customAppearance instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(customAppearance)) {
       return;
     }
 
     const normalAppearance = customAppearance.get("N");
 
-    if (!(normalAppearance instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(normalAppearance)) {
       return;
     }
 
@@ -19885,24 +19885,24 @@ class ButtonWidgetAnnotation extends WidgetAnnotation {
     this.data.fieldValue = this.data.buttonValue = null;
     const fieldParent = params.dict.get("Parent");
 
-    if (fieldParent instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(fieldParent)) {
       this.parent = params.dict.getRaw("Parent");
       const fieldParentValue = fieldParent.get("V");
 
-      if (fieldParentValue instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(fieldParentValue)) {
         this.data.fieldValue = this._decodeFormValue(fieldParentValue);
       }
     }
 
     const appearanceStates = params.dict.get("AP");
 
-    if (!(appearanceStates instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(appearanceStates)) {
       return;
     }
 
     const normalAppearance = appearanceStates.get("N");
 
-    if (!(normalAppearance instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(normalAppearance)) {
       return;
     }
 
@@ -20115,7 +20115,7 @@ class PopupAnnotation extends Annotation {
     }
 
     const parentSubtype = parentItem.get("Subtype");
-    this.data.parentType = parentSubtype instanceof _primitives.Name ? parentSubtype.name : null;
+    this.data.parentType = (0, _primitives.isName)(parentSubtype) ? parentSubtype.name : null;
     const rawParent = parameters.dict.getRaw("Parent");
     this.data.parentId = rawParent instanceof _primitives.Ref ? rawParent.toString() : null;
     const parentRect = parentItem.getArray("Rect");
@@ -20977,7 +20977,7 @@ class ColorSpace {
   static _parse(cs, xref, resources = null, pdfFunctionFactory) {
     cs = xref.fetchIfRef(cs);
 
-    if (cs instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(cs)) {
       switch (cs.name) {
         case "G":
         case "DeviceGray":
@@ -20995,14 +20995,14 @@ class ColorSpace {
           return new PatternCS(null);
 
         default:
-          if (resources instanceof _primitives.Dict) {
+          if ((0, _primitives.isDict)(resources)) {
             const colorSpaces = resources.get("ColorSpace");
 
-            if (colorSpaces instanceof _primitives.Dict) {
+            if ((0, _primitives.isDict)(colorSpaces)) {
               const resourcesCS = colorSpaces.get(cs.name);
 
               if (resourcesCS) {
-                if (resourcesCS instanceof _primitives.Name) {
+                if ((0, _primitives.isName)(resourcesCS)) {
                   return this._parse(resourcesCS, xref, resources, pdfFunctionFactory);
                 }
 
@@ -21893,7 +21893,7 @@ function normalizeBlendMode(value, parsingArray = false) {
     return "source-over";
   }
 
-  if (!(value instanceof _primitives.Name)) {
+  if (!(0, _primitives.isName)(value)) {
     if (parsingArray) {
       return null;
     }
@@ -22711,7 +22711,7 @@ class PartialEvaluator {
             break;
           }
 
-          if (value instanceof _primitives.Dict) {
+          if ((0, _primitives.isDict)(value)) {
             isSimpleGState = false;
             promise = promise.then(() => {
               return this.handleSMask(value, resources, operatorList, task, stateManager, localColorSpaceCache);
@@ -22818,7 +22818,7 @@ class PartialEvaluator {
 
     font = xref.fetchIfRef(fontRef);
 
-    if (!(font instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(font)) {
       return errorFont();
     }
 
@@ -22848,7 +22848,7 @@ class PartialEvaluator {
       fontID = `f${fontRef.toString()}`;
     }
 
-    if (hash && descriptor instanceof _primitives.Dict) {
+    if (hash && (0, _primitives.isDict)(descriptor)) {
       if (!descriptor.fontAliases) {
         descriptor.fontAliases = Object.create(null);
       }
@@ -23054,7 +23054,7 @@ class PartialEvaluator {
     const length = array.length;
     const operator = this.xref.fetchIfRef(array[0]);
 
-    if (length < 2 || !(operator instanceof _primitives.Name)) {
+    if (length < 2 || !(0, _primitives.isName)(operator)) {
       (0, _util.warn)("Invalid visibility expression");
       return;
     }
@@ -23089,10 +23089,10 @@ class PartialEvaluator {
   async parseMarkedContentProps(contentProperties, resources) {
     let optionalContent;
 
-    if (contentProperties instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(contentProperties)) {
       const properties = resources.get("Properties");
       optionalContent = properties.get(contentProperties.name);
-    } else if (contentProperties instanceof _primitives.Dict) {
+    } else if ((0, _primitives.isDict)(contentProperties)) {
       optionalContent = contentProperties;
     } else {
       throw new _util.FormatError("Optional content properties malformed.");
@@ -23123,7 +23123,7 @@ class PartialEvaluator {
 
       const optionalContentGroups = optionalContent.get("OCGs");
 
-      if (Array.isArray(optionalContentGroups) || optionalContentGroups instanceof _primitives.Dict) {
+      if (Array.isArray(optionalContentGroups) || (0, _primitives.isDict)(optionalContentGroups)) {
         const groupIds = [];
 
         if (Array.isArray(optionalContentGroups)) {
@@ -23137,7 +23137,7 @@ class PartialEvaluator {
         return {
           type: optionalContentType,
           ids: groupIds,
-          policy: optionalContent.get("P") instanceof _primitives.Name ? optionalContent.get("P").name : null,
+          policy: (0, _primitives.isName)(optionalContent.get("P")) ? optionalContent.get("P").name : null,
           expression: null
         };
       } else if (optionalContentGroups instanceof _primitives.Ref) {
@@ -23264,7 +23264,7 @@ class PartialEvaluator {
 
               const type = xobj.dict.get("Subtype");
 
-              if (!(type instanceof _primitives.Name)) {
+              if (!(0, _primitives.isName)(type)) {
                 throw new _util.FormatError("XObject should have a Name subtype");
               }
 
@@ -23624,7 +23624,7 @@ class PartialEvaluator {
             continue;
 
           case _util.OPS.beginMarkedContentProps:
-            if (!(args[0] instanceof _primitives.Name)) {
+            if (!(0, _primitives.isName)(args[0])) {
               (0, _util.warn)(`Expected name for beginMarkedContentProps arg0=${args[0]}`);
               continue;
             }
@@ -24387,7 +24387,7 @@ class PartialEvaluator {
 
               const type = xobj.dict.get("Subtype");
 
-              if (!(type instanceof _primitives.Name)) {
+              if (!(0, _primitives.isName)(type)) {
                 throw new _util.FormatError("XObject should have a Name subtype");
               }
 
@@ -24509,7 +24509,7 @@ class PartialEvaluator {
             if (includeMarkedContent) {
               textContent.items.push({
                 type: "beginMarkedContent",
-                tag: args[0] instanceof _primitives.Name ? args[0].name : null
+                tag: (0, _primitives.isName)(args[0]) ? args[0].name : null
               });
             }
 
@@ -24520,14 +24520,14 @@ class PartialEvaluator {
               flushTextContentItem();
               let mcid = null;
 
-              if (args[1] instanceof _primitives.Dict) {
+              if ((0, _primitives.isDict)(args[1])) {
                 mcid = args[1].get("MCID");
               }
 
               textContent.items.push({
                 type: "beginMarkedContentProps",
                 id: Number.isInteger(mcid) ? `${self.idFactory.getPageObjId()}_mcid${mcid}` : null,
-                tag: args[0] instanceof _primitives.Name ? args[0].name : null
+                tag: (0, _primitives.isName)(args[0]) ? args[0].name : null
               });
             }
 
@@ -24582,7 +24582,7 @@ class PartialEvaluator {
     if (properties.composite) {
       const cidSystemInfo = dict.get("CIDSystemInfo");
 
-      if (cidSystemInfo instanceof _primitives.Dict) {
+      if ((0, _primitives.isDict)(cidSystemInfo)) {
         properties.cidSystemInfo = {
           registry: (0, _util.stringToPDFString)(cidSystemInfo.get("Registry")),
           ordering: (0, _util.stringToPDFString)(cidSystemInfo.get("Ordering")),
@@ -24604,9 +24604,9 @@ class PartialEvaluator {
     if (dict.has("Encoding")) {
       encoding = dict.get("Encoding");
 
-      if (encoding instanceof _primitives.Dict) {
+      if ((0, _primitives.isDict)(encoding)) {
         baseEncodingName = encoding.get("BaseEncoding");
-        baseEncodingName = baseEncodingName instanceof _primitives.Name ? baseEncodingName.name : null;
+        baseEncodingName = (0, _primitives.isName)(baseEncodingName) ? baseEncodingName.name : null;
 
         if (encoding.has("Differences")) {
           const diffEncoding = encoding.get("Differences");
@@ -24617,14 +24617,14 @@ class PartialEvaluator {
 
             if ((0, _util.isNum)(data)) {
               index = data;
-            } else if (data instanceof _primitives.Name) {
+            } else if ((0, _primitives.isName)(data)) {
               differences[index++] = data.name;
             } else {
               throw new _util.FormatError(`Invalid entry in 'Differences' array: ${data}`);
             }
           }
         }
-      } else if (encoding instanceof _primitives.Name) {
+      } else if ((0, _primitives.isName)(encoding)) {
         baseEncodingName = encoding.name;
       } else {
         throw new _util.FormatError("Encoding is not a Name nor a Dict");
@@ -24822,7 +24822,7 @@ class PartialEvaluator {
       return Promise.resolve(null);
     }
 
-    if (cmapObj instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(cmapObj)) {
       return _cmap.CMapFactory.create({
         encoding: cmapObj,
         fetchBuiltInCMap: this._fetchBuiltInCMapBound,
@@ -24976,7 +24976,7 @@ class PartialEvaluator {
       } else {
         const baseFontName = dict.get("BaseFont");
 
-        if (baseFontName instanceof _primitives.Name) {
+        if ((0, _primitives.isName)(baseFontName)) {
           const metrics = this.getBaseFontMetrics(baseFontName.name);
           glyphsWidths = this.buildCharCodeToWidth(metrics.widths, properties);
           defaultWidth = metrics.defaultWidth;
@@ -25076,7 +25076,7 @@ class PartialEvaluator {
     const baseDict = dict;
     let type = dict.get("Subtype");
 
-    if (!(type instanceof _primitives.Name)) {
+    if (!(0, _primitives.isName)(type)) {
       throw new _util.FormatError("invalid font Subtype");
     }
 
@@ -25098,7 +25098,7 @@ class PartialEvaluator {
 
       type = dict.get("Subtype");
 
-      if (!(type instanceof _primitives.Name)) {
+      if (!(0, _primitives.isName)(type)) {
         throw new _util.FormatError("invalid font Subtype");
       }
 
@@ -25113,13 +25113,13 @@ class PartialEvaluator {
       hash = new _murmurhash.MurmurHash3_64();
       const encoding = baseDict.getRaw("Encoding");
 
-      if (encoding instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(encoding)) {
         hash.update(encoding.name);
       } else if (encoding instanceof _primitives.Ref) {
         hash.update(encoding.toString());
-      } else if (encoding instanceof _primitives.Dict) {
+      } else if ((0, _primitives.isDict)(encoding)) {
         for (const entry of encoding.getRawValues()) {
-          if (entry instanceof _primitives.Name) {
+          if ((0, _primitives.isName)(entry)) {
             hash.update(entry.name);
           } else if (entry instanceof _primitives.Ref) {
             hash.update(entry.toString());
@@ -25130,7 +25130,7 @@ class PartialEvaluator {
             for (let j = 0; j < diffLength; j++) {
               const diffEntry = entry[j];
 
-              if (diffEntry instanceof _primitives.Name) {
+              if ((0, _primitives.isName)(diffEntry)) {
                 diffBuf[j] = diffEntry.name;
               } else if ((0, _util.isNum)(diffEntry) || diffEntry instanceof _primitives.Ref) {
                 diffBuf[j] = diffEntry.toString();
@@ -25149,7 +25149,7 @@ class PartialEvaluator {
         const stream = toUnicode.str || toUnicode;
         const uint8array = stream.buffer ? new Uint8Array(stream.buffer.buffer, 0, stream.bufferLength) : new Uint8Array(stream.bytes.buffer, stream.start, stream.end - stream.start);
         hash.update(uint8array);
-      } else if (toUnicode instanceof _primitives.Name) {
+      } else if ((0, _primitives.isName)(toUnicode)) {
         hash.update(toUnicode.name);
       }
 
@@ -25240,7 +25240,7 @@ class PartialEvaluator {
       } else {
         let baseFontName = dict.get("BaseFont");
 
-        if (!(baseFontName instanceof _primitives.Name)) {
+        if (!(0, _primitives.isName)(baseFontName)) {
           throw new _util.FormatError("Base font is not specified");
         }
 
@@ -25319,7 +25319,7 @@ class PartialEvaluator {
 
     fontName = fontName || baseFont;
 
-    if (!(fontName instanceof _primitives.Name)) {
+    if (!(0, _primitives.isName)(fontName)) {
       throw new _util.FormatError("invalid font name");
     }
 
@@ -25406,7 +25406,7 @@ class PartialEvaluator {
     if (composite) {
       const cidEncoding = baseDict.get("Encoding");
 
-      if (cidEncoding instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(cidEncoding)) {
         properties.cidEncoding = cidEncoding.name;
       }
 
@@ -27014,7 +27014,7 @@ const CMapFactory = function CMapFactoryClosure() {
   function parseCMapName(cMap, lexer) {
     const obj = lexer.getObj();
 
-    if (obj instanceof _primitives.Name && (0, _util.isString)(obj.name)) {
+    if ((0, _primitives.isName)(obj) && (0, _util.isString)(obj.name)) {
       cMap.name = obj.name;
     }
   }
@@ -27028,7 +27028,7 @@ const CMapFactory = function CMapFactoryClosure() {
 
         if (obj === _primitives.EOF) {
           break;
-        } else if (obj instanceof _primitives.Name) {
+        } else if ((0, _primitives.isName)(obj)) {
           if (obj.name === "WMode") {
             parseWMode(cMap, lexer);
           } else if (obj.name === "CMapName") {
@@ -27036,13 +27036,13 @@ const CMapFactory = function CMapFactoryClosure() {
           }
 
           previous = obj;
-        } else if (obj instanceof _primitives.Cmd) {
+        } else if ((0, _primitives.isCmd)(obj)) {
           switch (obj.cmd) {
             case "endcmap":
               break objLoop;
 
             case "usecmap":
-              if (previous instanceof _primitives.Name) {
+              if ((0, _primitives.isName)(previous)) {
                 embeddedUseCMap = previous.name;
               }
 
@@ -27152,7 +27152,7 @@ const CMapFactory = function CMapFactoryClosure() {
       const fetchBuiltInCMap = params.fetchBuiltInCMap;
       const useCMap = params.useCMap;
 
-      if (encoding instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(encoding)) {
         return createBuiltInCMap(encoding.name, fetchBuiltInCMap);
       } else if (encoding instanceof _base_stream.BaseStream) {
         const parsedCMap = await parseCMap(new CMap(), new _parser.Lexer(encoding), fetchBuiltInCMap, useCMap);
@@ -27301,7 +27301,7 @@ class Parser {
           const dict = new _primitives.Dict(this.xref);
 
           while (!(0, _primitives.isCmd)(this.buf1, ">>") && this.buf1 !== _primitives.EOF) {
-            if (!(this.buf1 instanceof _primitives.Name)) {
+            if (!(0, _primitives.isName)(this.buf1)) {
               (0, _util.info)("Malformed dictionary: key must be a name object");
               this.shift();
               continue;
@@ -27622,7 +27622,7 @@ class Parser {
     let dictLength;
 
     while (!(0, _primitives.isCmd)(this.buf1, "ID") && this.buf1 !== _primitives.EOF) {
-      if (!(this.buf1 instanceof _primitives.Name)) {
+      if (!(0, _primitives.isName)(this.buf1)) {
         throw new _util.FormatError("Dictionary key must be a name object");
       }
 
@@ -27643,12 +27643,12 @@ class Parser {
     const filter = dict.get("F", "Filter");
     let filterName;
 
-    if (filter instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(filter)) {
       filterName = filter.name;
     } else if (Array.isArray(filter)) {
       const filterZero = this.xref.fetchIfRef(filter[0]);
 
-      if (filterZero instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(filterZero)) {
         filterName = filterZero.name;
       }
     }
@@ -27824,7 +27824,7 @@ class Parser {
     let filter = dict.get("F", "Filter");
     let params = dict.get("DP", "DecodeParms");
 
-    if (filter instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(filter)) {
       if (Array.isArray(params)) {
         (0, _util.warn)("/DecodeParms should not be an Array, when /Filter is a Name.");
       }
@@ -27841,7 +27841,7 @@ class Parser {
       for (let i = 0, ii = filterArray.length; i < ii; ++i) {
         filter = this.xref.fetchIfRef(filterArray[i]);
 
-        if (!(filter instanceof _primitives.Name)) {
+        if (!(0, _primitives.isName)(filter)) {
           throw new _util.FormatError(`Bad filter name "${filter}"`);
         }
 
@@ -28534,7 +28534,7 @@ class Linearization {
     const linDict = parser.getObj();
     let obj, length;
 
-    if (!(Number.isInteger(obj1) && Number.isInteger(obj2) && (0, _primitives.isCmd)(obj3, "obj") && linDict instanceof _primitives.Dict && (0, _util.isNum)(obj = linDict.get("Linearized")) && obj > 0)) {
+    if (!(Number.isInteger(obj1) && Number.isInteger(obj2) && (0, _primitives.isCmd)(obj3, "obj") && (0, _primitives.isDict)(linDict) && (0, _util.isNum)(obj = linDict.get("Linearized")) && obj > 0)) {
       return null;
     } else if ((length = getInt(linDict, "L")) !== stream.length) {
       throw new Error('The "L" parameter in the linearization dictionary ' + "does not equal the stream length.");
@@ -28933,11 +28933,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CCITTFaxStream = void 0;
 
+var _primitives = __w_pdfjs_require__(5);
+
 var _ccitt = __w_pdfjs_require__(32);
 
 var _decode_stream = __w_pdfjs_require__(29);
-
-var _primitives = __w_pdfjs_require__(5);
 
 class CCITTFaxStream extends _decode_stream.DecodeStream {
   constructor(str, maybeLength, params) {
@@ -28945,7 +28945,7 @@ class CCITTFaxStream extends _decode_stream.DecodeStream {
     this.str = str;
     this.dict = str.dict;
 
-    if (!(params instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(params)) {
       params = _primitives.Dict.empty;
     }
 
@@ -30048,7 +30048,7 @@ class Jbig2Stream extends _decode_stream.DecodeStream {
     const jbig2Image = new _jbig.Jbig2Image();
     const chunks = [];
 
-    if (this.params instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(this.params)) {
       const globalsStream = this.params.get("JBIG2Globals");
 
       if (globalsStream instanceof _base_stream.BaseStream) {
@@ -32709,7 +32709,7 @@ class JpegStream extends _decode_stream.DecodeStream {
       }
     }
 
-    if (this.params instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(this.params)) {
       const colorTransform = this.params.get("ColorTransform");
 
       if (Number.isInteger(colorTransform)) {
@@ -36565,15 +36565,15 @@ exports.PredictorStream = void 0;
 
 var _decode_stream = __w_pdfjs_require__(29);
 
-var _primitives = __w_pdfjs_require__(5);
-
 var _util = __w_pdfjs_require__(2);
+
+var _primitives = __w_pdfjs_require__(5);
 
 class PredictorStream extends _decode_stream.DecodeStream {
   constructor(str, maybeLength, params) {
     super(maybeLength);
 
-    if (!(params instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(params)) {
       return str;
     }
 
@@ -50045,7 +50045,7 @@ function isPDFFunction(v) {
 
   if (typeof v !== "object") {
     return false;
-  } else if (v instanceof _primitives.Dict) {
+  } else if ((0, _primitives.isDict)(v)) {
     fnDict = v;
   } else if (v instanceof _base_stream.BaseStream) {
     fnDict = v.dict;
@@ -52510,6 +52510,8 @@ exports.PDFImage = void 0;
 
 var _util = __w_pdfjs_require__(2);
 
+var _primitives = __w_pdfjs_require__(5);
+
 var _base_stream = __w_pdfjs_require__(9);
 
 var _colorspace = __w_pdfjs_require__(24);
@@ -52519,8 +52521,6 @@ var _decode_stream = __w_pdfjs_require__(29);
 var _jpeg_stream = __w_pdfjs_require__(37);
 
 var _jpx = __w_pdfjs_require__(40);
-
-var _primitives = __w_pdfjs_require__(5);
 
 function decodeAndClamp(value, addend, coefficient, max) {
   value = addend + value * coefficient;
@@ -52588,7 +52588,7 @@ class PDFImage {
     const dict = image.dict;
     const filter = dict.get("F", "Filter");
 
-    if (filter instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(filter)) {
       switch (filter.name) {
         case "JPXDecode":
           const jpxImage = new _jpx.JpxImage();
@@ -53261,7 +53261,7 @@ class Catalog {
     try {
       const obj = this._catDict.get("Collection");
 
-      if (obj instanceof _primitives.Dict && obj.size > 0) {
+      if ((0, _primitives.isDict)(obj) && obj.size > 0) {
         collection = obj;
       }
     } catch (ex) {
@@ -53281,7 +53281,7 @@ class Catalog {
     try {
       const obj = this._catDict.get("AcroForm");
 
-      if (obj instanceof _primitives.Dict && obj.size > 0) {
+      if ((0, _primitives.isDict)(obj) && obj.size > 0) {
         acroForm = obj;
       }
     } catch (ex) {
@@ -53356,7 +53356,7 @@ class Catalog {
   _readMarkInfo() {
     const obj = this._catDict.get("MarkInfo");
 
-    if (!(obj instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(obj)) {
       return null;
     }
 
@@ -53402,7 +53402,7 @@ class Catalog {
   _readStructTreeRoot() {
     const obj = this._catDict.get("StructTreeRoot");
 
-    if (!(obj instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(obj)) {
       return null;
     }
 
@@ -53414,7 +53414,7 @@ class Catalog {
   get toplevelPagesDict() {
     const pagesObj = this._catDict.get("Pages");
 
-    if (!(pagesObj instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(pagesObj)) {
       throw new _util.FormatError("Invalid top-level pages dictionary.");
     }
 
@@ -53440,7 +53440,7 @@ class Catalog {
   _readDocumentOutline() {
     let obj = this._catDict.get("Outlines");
 
-    if (!(obj instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(obj)) {
       return null;
     }
 
@@ -53549,7 +53549,7 @@ class Catalog {
   _readPermissions() {
     const encrypt = this.xref.trailer.get("Encrypt");
 
-    if (!(encrypt instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(encrypt)) {
       return null;
     }
 
@@ -53725,7 +53725,7 @@ class Catalog {
     return {
       name: (0, _util.isString)(config.get("Name")) ? (0, _util.stringToPDFString)(config.get("Name")) : null,
       creator: (0, _util.isString)(config.get("Creator")) ? (0, _util.stringToPDFString)(config.get("Creator")) : null,
-      baseState: config.get("BaseState") instanceof _primitives.Name ? config.get("BaseState").name : null,
+      baseState: (0, _primitives.isName)(config.get("BaseState")) ? config.get("BaseState").name : null,
       on: parseOnOff(config.get("ON")),
       off: parseOnOff(config.get("OFF")),
       order: parseOrder(config.get("Order")),
@@ -53854,7 +53854,7 @@ class Catalog {
       const labelDict = nums.get(i);
 
       if (labelDict !== undefined) {
-        if (!(labelDict instanceof _primitives.Dict)) {
+        if (!(0, _primitives.isDict)(labelDict)) {
           throw new _util.FormatError("PageLabel is not a dictionary.");
         }
 
@@ -53865,7 +53865,7 @@ class Catalog {
         if (labelDict.has("S")) {
           const s = labelDict.get("S");
 
-          if (!(s instanceof _primitives.Name)) {
+          if (!(0, _primitives.isName)(s)) {
             throw new _util.FormatError("Invalid style in PageLabel dictionary.");
           }
 
@@ -53946,7 +53946,7 @@ class Catalog {
 
     let pageLayout = "";
 
-    if (obj instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(obj)) {
       switch (obj.name) {
         case "SinglePage":
         case "OneColumn":
@@ -53966,7 +53966,7 @@ class Catalog {
 
     let pageMode = "UseNone";
 
-    if (obj instanceof _primitives.Name) {
+    if ((0, _primitives.isName)(obj)) {
       switch (obj.name) {
         case "UseNone":
         case "UseOutlines":
@@ -54006,7 +54006,7 @@ class Catalog {
 
     let prefs = null;
 
-    if (obj instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(obj)) {
       for (const key in ViewerPreferencesValidators) {
         if (!obj.has(key)) {
           continue;
@@ -54148,7 +54148,7 @@ class Catalog {
 
     const openAction = Object.create(null);
 
-    if (obj instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(obj)) {
       const destDict = new _primitives.Dict(this.xref);
       destDict.set("A", obj);
       const resultObj = {
@@ -54572,7 +54572,7 @@ class Catalog {
       let total = 0,
           parentRef;
       return xref.fetchAsync(kidRef).then(function (node) {
-        if ((0, _primitives.isRefsEqual)(kidRef, pageRef) && !(0, _primitives.isDict)(node, "Page") && !(node instanceof _primitives.Dict && !node.has("Type") && node.has("Contents"))) {
+        if ((0, _primitives.isRefsEqual)(kidRef, pageRef) && !(0, _primitives.isDict)(node, "Page") && !((0, _primitives.isDict)(node) && !node.has("Type") && node.has("Contents"))) {
           throw new _util.FormatError("The reference does not point to a /Page dictionary.");
         }
 
@@ -54580,7 +54580,7 @@ class Catalog {
           return null;
         }
 
-        if (!(node instanceof _primitives.Dict)) {
+        if (!(0, _primitives.isDict)(node)) {
           throw new _util.FormatError("Node must be a dictionary.");
         }
 
@@ -54591,7 +54591,7 @@ class Catalog {
           return null;
         }
 
-        if (!(parent instanceof _primitives.Dict)) {
+        if (!(0, _primitives.isDict)(parent)) {
           throw new _util.FormatError("Parent must be a dictionary.");
         }
 
@@ -54617,7 +54617,7 @@ class Catalog {
           }
 
           kidPromises.push(xref.fetchAsync(kid).then(function (obj) {
-            if (!(obj instanceof _primitives.Dict)) {
+            if (!(0, _primitives.isDict)(obj)) {
               throw new _util.FormatError("Kid node must be a dictionary.");
             }
 
@@ -54658,7 +54658,7 @@ class Catalog {
   static parseDestDictionary(params) {
     const destDict = params.destDict;
 
-    if (!(destDict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(destDict)) {
       (0, _util.warn)("parseDestDictionary: `destDict` must be a dictionary.");
       return;
     }
@@ -54675,13 +54675,13 @@ class Catalog {
         url,
         dest;
 
-    if (!(action instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(action)) {
       if (destDict.has("Dest")) {
         action = destDict.get("Dest");
       } else {
         action = destDict.get("AA");
 
-        if (action instanceof _primitives.Dict) {
+        if ((0, _primitives.isDict)(action)) {
           if (action.has("D")) {
             action = action.get("D");
           } else if (action.has("U")) {
@@ -54691,10 +54691,10 @@ class Catalog {
       }
     }
 
-    if (action instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(action)) {
       const actionType = action.get("S");
 
-      if (!(actionType instanceof _primitives.Name)) {
+      if (!(0, _primitives.isName)(actionType)) {
         (0, _util.warn)("parseDestDictionary: Invalid type in Action dictionary.");
         return;
       }
@@ -54740,7 +54740,7 @@ class Catalog {
         case "GoToR":
           const urlDict = action.get("F");
 
-          if (urlDict instanceof _primitives.Dict) {
+          if ((0, _primitives.isDict)(urlDict)) {
             url = urlDict.get("F") || null;
           } else if ((0, _util.isString)(urlDict)) {
             url = urlDict;
@@ -54749,7 +54749,7 @@ class Catalog {
           let remoteDest = action.get("D");
 
           if (remoteDest) {
-            if (remoteDest instanceof _primitives.Name) {
+            if ((0, _primitives.isName)(remoteDest)) {
               remoteDest = remoteDest.name;
             }
 
@@ -54775,7 +54775,7 @@ class Catalog {
         case "Named":
           const namedAction = action.get("N");
 
-          if (namedAction instanceof _primitives.Name) {
+          if ((0, _primitives.isName)(namedAction)) {
             resultObj.action = namedAction.name;
           }
 
@@ -54825,7 +54825,7 @@ class Catalog {
     }
 
     if (dest) {
-      if (dest instanceof _primitives.Name) {
+      if ((0, _primitives.isName)(dest)) {
         dest = dest.name;
       }
 
@@ -54850,9 +54850,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.NumberTree = exports.NameTree = void 0;
 
-var _primitives = __w_pdfjs_require__(5);
-
 var _util = __w_pdfjs_require__(2);
+
+var _primitives = __w_pdfjs_require__(5);
 
 class NameOrNumberTree {
   constructor(root, xref, type) {
@@ -54880,7 +54880,7 @@ class NameOrNumberTree {
     while (queue.length > 0) {
       const obj = xref.fetchIfRef(queue.shift());
 
-      if (!(obj instanceof _primitives.Dict)) {
+      if (!(0, _primitives.isDict)(obj)) {
         continue;
       }
 
@@ -55059,7 +55059,7 @@ function pickPlatformItem(dict) {
 
 class FileSpec {
   constructor(root, xref) {
-    if (!(root instanceof _primitives.Dict)) {
+    if (!root || !(0, _primitives.isDict)(root)) {
       return;
     }
 
@@ -55854,12 +55854,12 @@ class StructTreeRoot {
   readRoleMap() {
     const roleMapDict = this.dict.get("RoleMap");
 
-    if (!(roleMapDict instanceof _primitives.Dict)) {
+    if (!(0, _primitives.isDict)(roleMapDict)) {
       return;
     }
 
     roleMapDict.forEach((key, value) => {
-      if (!(value instanceof _primitives.Name)) {
+      if (!(0, _primitives.isName)(value)) {
         return;
       }
 
@@ -55881,7 +55881,7 @@ class StructElementNode {
 
   get role() {
     const nameObj = this.dict.get("S");
-    const name = nameObj instanceof _primitives.Name ? nameObj.name : "";
+    const name = (0, _primitives.isName)(nameObj) ? nameObj.name : "";
     const {
       root
     } = this.tree;
@@ -55937,7 +55937,7 @@ class StructElementNode {
 
     if (kid instanceof _primitives.Ref) {
       kidDict = this.dict.xref.fetch(kid);
-    } else if (kid instanceof _primitives.Dict) {
+    } else if ((0, _primitives.isDict)(kid)) {
       kidDict = kid;
     }
 
@@ -55951,7 +55951,7 @@ class StructElementNode {
       pageObjId = pageRef.toString();
     }
 
-    const type = kidDict.get("Type") instanceof _primitives.Name ? kidDict.get("Type").name : null;
+    const type = (0, _primitives.isName)(kidDict.get("Type")) ? kidDict.get("Type").name : null;
 
     if (type === "MCR") {
       if (this.tree.pageDict.objId !== pageObjId) {
@@ -56096,7 +56096,7 @@ class StructTreePage {
       return false;
     }
 
-    if (obj instanceof _primitives.Dict) {
+    if ((0, _primitives.isDict)(obj)) {
       if (obj.objId !== dict.objId) {
         return false;
       }
@@ -56418,7 +56418,7 @@ function numberToString(value) {
 }
 
 function writeValue(value, buffer, transform) {
-  if (value instanceof _primitives.Name) {
+  if ((0, _primitives.isName)(value)) {
     buffer.push(`/${(0, _core_utils.escapePDFName)(value.name)}`);
   } else if (value instanceof _primitives.Ref) {
     buffer.push(`${value.num} ${value.gen} R`);
@@ -56434,7 +56434,7 @@ function writeValue(value, buffer, transform) {
     buffer.push(numberToString(value));
   } else if (typeof value === "boolean") {
     buffer.push(value.toString());
-  } else if (value instanceof _primitives.Dict) {
+  } else if ((0, _primitives.isDict)(value)) {
     writeDict(value, buffer, transform);
   } else if (value instanceof _base_stream.BaseStream) {
     writeStream(value, buffer, transform);
@@ -58117,7 +58117,7 @@ const CipherTransformFactory = function CipherTransformFactoryClosure() {
   }
 
   function buildCipherConstructor(cf, name, num, gen, key) {
-    if (!(name instanceof _primitives.Name)) {
+    if (!(0, _primitives.isName)(name)) {
       throw new _util.FormatError("Invalid crypt filter name.");
     }
 
@@ -58181,7 +58181,7 @@ const CipherTransformFactory = function CipherTransformFactoryClosure() {
           const cfDict = dict.get("CF");
           const streamCryptoName = dict.get("StmF");
 
-          if (cfDict instanceof _primitives.Dict && streamCryptoName instanceof _primitives.Name) {
+          if ((0, _primitives.isDict)(cfDict) && (0, _primitives.isName)(streamCryptoName)) {
             cfDict.suppressEncryption = true;
             const handlerDict = cfDict.get(streamCryptoName.name);
             keyLength = handlerDict && handlerDict.get("Length") || 128;
@@ -58250,7 +58250,7 @@ const CipherTransformFactory = function CipherTransformFactoryClosure() {
       if (algorithm >= 4) {
         const cf = dict.get("CF");
 
-        if (cf instanceof _primitives.Dict) {
+        if ((0, _primitives.isDict)(cf)) {
           cf.suppressEncryption = true;
         }
 
@@ -73815,8 +73815,8 @@ Object.defineProperty(exports, "WorkerMessageHandler", ({
 
 var _worker = __w_pdfjs_require__(1);
 
-const pdfjsVersion = '2.13.178';
-const pdfjsBuild = 'edd024c9e';
+const pdfjsVersion = '2.13.0';
+const pdfjsBuild = '47c4c0b';
 })();
 
 /******/ 	return __webpack_exports__;

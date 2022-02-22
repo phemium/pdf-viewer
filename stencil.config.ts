@@ -1,21 +1,11 @@
-import { Config } from '@stencil/core';
-import { sass } from '@stencil/sass';
+import { Config } from "@stencil/core";
+import { sass } from "@stencil/sass";
 
 export const config: Config = {
-    namespace: 'pdf-viewer',
-    outputTargets: [
-        { type: 'dist' },
-        { type: 'www', serviceWorker: null }
-    ],
+    namespace: "pdf-viewer",
+    outputTargets: [{ type: "dist" }, { type: "www", serviceWorker: null }],
     devServer: {
-        openBrowser: false
+        openBrowser: false,
     },
-    plugins: [
-        sass()
-    ],
-    copy: [
-        {
-            src: 'package.json', dest: '../package.json'
-        }
-    ]
+    plugins: [sass()],
 };

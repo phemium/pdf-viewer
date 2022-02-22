@@ -17,12 +17,12 @@
         "dist/"
     ],
     "scripts": {
-        "build": "npm run pdf.js:build && npm run prepare-assets && npm run build:stencil",
         "build:stencil": "stencil build",
         "start": "stencil build --dev --watch --serve",
         "prepare-assets": "node ./scripts/prepare-assets.js",
+        "copy-package": "node ./scripts/copy-package.js",
         "pdf.js:install": "cd pdf.js && npm install",
-        "pdf.js:build": "cd pdf.js && gulp generic",
+        "pdf.js:build": "cd pdf.js && gulp generic-legacy",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
