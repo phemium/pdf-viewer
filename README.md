@@ -39,10 +39,6 @@ Comment line with validateFileURL(file); in folder pdf.js file pdf.js
 
 -   `cd dist && npm publish --access public`
 
-## PUBLISH
-
--   `cd dist && npm publish --access public`
-
 ## Usage
 
 ```bash
