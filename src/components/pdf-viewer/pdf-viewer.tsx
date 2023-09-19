@@ -188,7 +188,7 @@ export class PdfViewer {
 
         
         if (
-            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)
+            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android|iPhone/)
         ) {
             const contentWindow = this.iframeEl.contentWindow as any;
             if (contentWindow && contentWindow.PDFViewerApplication) {
