@@ -1,17 +1,38 @@
+import { h, getAssetPath, } from "@stencil/core";
+import * as screenfull from "screenfull";
 export class PdfViewer {
     constructor() {
+        this.src = undefined;
+        this.page = undefined;
         this.enableToolbar = true;
+        this.disableScrolling = false;
+        this.enableManualFullscreenFallback = false;
         this.enableSideDrawer = true;
         this.enableSearch = true;
+        this.scale = undefined;
+        this.iframeLoaded = undefined;
     }
     updateToolbarVisibility() {
         if (this.toolbarEl) {
             if (this.enableToolbar) {
                 this.toolbarEl.classList.remove("hidden");
+                this.iframeEl.contentDocument.documentElement.style.setProperty("--toolbar-height", "");
             }
             else {
                 this.toolbarEl.classList.add("hidden");
                 this.iframeEl.contentDocument.documentElement.style.setProperty("--toolbar-height", "0px");
+            }
+        }
+    }
+    updateScrolling() {
+        if (this.viewerContainer) {
+            if (this.disableScrolling) {
+                this.viewerContainer.style.pointerEvents = "none";
+                this.viewerContainer.style["WebkitOverflowScrolling"] = "auto";
+            }
+            else {
+                this.viewerContainer.style.pointerEvents = "";
+                this.viewerContainer.style["WebkitOverflowScrolling"] = "";
             }
         }
     }
@@ -38,7 +59,8 @@ export class PdfViewer {
     print() {
         return new Promise((resolve) => {
             this.iframeEl.contentWindow.print();
-            this.iframeEl.contentWindow.addEventListener("afterprint", () => {
+            this.iframeEl
+                .contentWindow.PDFViewerApplication.eventBus.on("afterprint", () => {
                 resolve();
             }, { once: true });
         });
@@ -46,19 +68,27 @@ export class PdfViewer {
     updateScale() {
         this.setScale(this.scale);
     }
-    setScale(scale) {
+    async setScale(scale) {
         const contentWindow = this.iframeEl.contentWindow;
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = this.iframeEl.contentWindow
-                .PDFViewerApplication;
+            const { pdfViewer } = this.iframeEl
+                .contentWindow.PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
+        }
+    }
+    async getPage() {
+        const contentWindow = this.iframeEl.contentWindow;
+        if (contentWindow && contentWindow.PDFViewerApplication) {
+            const { pdfViewer } = this.iframeEl
+                .contentWindow.PDFViewerApplication;
+            return pdfViewer.currentPageNumber;
         }
     }
     get viewerSrc() {
         if (this.page) {
-            return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}#page=${this.page}`;
+            return `${getAssetPath("./pdf-viewer-assets/viewer/web/viewer.html")}?file=${encodeURIComponent(this.src)}#page=${this.page}`;
         }
-        return `${this.resourcesUrl}pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(this.src)}`;
+        return `${getAssetPath("./pdf-viewer-assets/viewer/web/viewer.html")}?file=${encodeURIComponent(this.src)}`;
     }
     componentDidLoad() {
         this.iframeEl.onload = () => {
@@ -66,7 +96,12 @@ export class PdfViewer {
             this.initButtonVisibility();
             this.addEventListeners();
             this.iframeLoaded = true;
+            this.PDFViewerApplication = this.iframeEl.contentWindow.PDFViewerApplication;
         };
+    }
+    disconnectedCallback() {
+        // https://github.com/mozilla/pdf.js/issues/11297
+        this.PDFViewerApplication.pdfViewer._pages.forEach(page => page.reset());
     }
     setCSSVariables() {
         for (let i = 0; i < PdfViewer.CSSVariables.length; i++) {
@@ -75,45 +110,67 @@ export class PdfViewer {
         }
     }
     initButtonVisibility() {
-        this.toolbarEl =
-            this.iframeEl.contentDocument.body.querySelector("#toolbarContainer");
-        this.sidebarToggleEl =
-            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
-        this.searchToggleEl =
-            this.iframeEl.contentDocument.body.querySelector("#viewFind");
+        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector("#toolbarContainer");
+        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
+        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector("#viewFind");
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
     addEventListeners() {
-        this.viewerContainer =
-            this.iframeEl.contentDocument.body.querySelector("#viewerContainer");
-        this.viewerContainer.addEventListener("pagechange", this.handlePageChange.bind(this));
-        this.viewerContainer.addEventListener("click", this.handleLinkClick.bind(this));
-        this.iframeEl.contentDocument.addEventListener("pagesloaded", () => {
-            if (this.scale) {
-                this.setScale(this.scale);
-            }
+        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector("#viewerContainer");
+        const frameWindow = this.iframeEl.contentWindow;
+        const pdfViewer = frameWindow.PDFViewerApplication;
+        pdfViewer.initializedPromise.then(() => {
+            pdfViewer.eventBus.on("pagechanging", this.handlePageChange.bind(this));
+            // when the documents within the pdf viewer finish loading
+            pdfViewer.eventBus.on("pagesloaded", () => {
+                if (this.scale) {
+                    this.setScale(this.scale);
+                }
+            });
         });
-        if (this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)) {
-            const contentWindow = this.iframeEl.contentWindow;
-            if (contentWindow && contentWindow.PDFViewerApplication) {
-                contentWindow.PDFViewerApplication.initializedPromise.then(() => {
-                    console.log("PDF Initialized");
-                    contentWindow.PDFViewerApplication.eventBus.on("download", this.handleDownload.bind(this));
-                });
-            }
-            else {
-                console.error("EventBus not found");
-            }
+        this.viewerContainer.addEventListener("click", this.handleLinkClick.bind(this));
+        this.updateScrolling();
+        const fullscreenBtn = this.iframeEl.contentDocument.documentElement.querySelector("#fullscreen");
+        const collapseIcon = fullscreenBtn.querySelector("#collapseIcon");
+        const fullscreenIcon = fullscreenBtn.querySelector("#fullscreenIcon");
+        if (screenfull.isEnabled) {
+            screenfull.on("change", () => {
+                if (screenfull.isEnabled) {
+                    if (screenfull.isFullscreen) {
+                        collapseIcon.classList.remove("hidden");
+                        fullscreenIcon.classList.add("hidden");
+                    }
+                    else {
+                        fullscreenIcon.classList.remove("hidden");
+                        collapseIcon.classList.add("hidden");
+                    }
+                }
+            });
+            fullscreenBtn.addEventListener("click", () => {
+                if (screenfull.isEnabled) {
+                    screenfull.toggle(this.iframeEl.contentDocument.documentElement);
+                }
+            });
         }
-    }
-    handleDownload() {
-        if (this.iframeEl.contentWindow.top.cordova && this.iframeEl.contentWindow.top.cordova.InAppBrowser) {
-            this.iframeEl.contentWindow.top.cordova.InAppBrowser.open(this.src, '_system', 'location=yes');
-        }
-        else {
-            this.window.open(this.src);
+        else if (this.enableManualFullscreenFallback) {
+            // enable "fake" fullscreen
+            let isFullscreen = false;
+            fullscreenBtn.classList.remove("hidden");
+            fullscreenBtn.addEventListener("click", () => {
+                if (isFullscreen) {
+                    isFullscreen = false;
+                    collapseIcon.classList.add("hidden");
+                    fullscreenIcon.classList.remove("hidden");
+                }
+                else {
+                    isFullscreen = true;
+                    collapseIcon.classList.remove("hidden");
+                    fullscreenIcon.classList.add("hidden");
+                }
+                this.fullscreenToggle.emit(isFullscreen);
+            });
         }
     }
     handlePageChange(e) {
@@ -121,84 +178,322 @@ export class PdfViewer {
     }
     handleLinkClick(e) {
         e.preventDefault();
-        const link = e.target.closest(".linkAnnotation > a");
+        const link = e.target.tagName === "A" ? e.target : e.target.closest(".linkAnnotation > a");
         if (link) {
+            // Ignore internal links to the same document
             if (link.classList.contains("internalLink")) {
                 return;
             }
-            const href = e.target.closest(".linkAnnotation > a").href || "";
-            this.onLinkClick.emit(href);
+            const href = link.href || "";
+            this.linkClick.emit(href);
         }
     }
     render() {
-        return (h("iframe", { class: this.iframeLoaded ? "loaded" : "", ref: (el) => (this.iframeEl = el), src: this.viewerSrc }));
+        return (h("iframe", { key: 'd6aeab810e193534a6cdbe596f044a82560b1b0f', class: {
+                loaded: this.iframeLoaded,
+            }, ref: (el) => (this.iframeEl = el), src: this.viewerSrc }));
     }
     static get is() { return "phemium-pdf-viewer"; }
     static get encapsulation() { return "shadow"; }
-    static get properties() { return {
-        "element": {
-            "elementRef": true
-        },
-        "enableSearch": {
-            "type": Boolean,
-            "attr": "enable-search",
-            "watchCallbacks": ["updateSearchVisibility"]
-        },
-        "enableSideDrawer": {
-            "type": Boolean,
-            "attr": "enable-side-drawer",
-            "watchCallbacks": ["updateSideDrawerVisibility"]
-        },
-        "enableToolbar": {
-            "type": Boolean,
-            "attr": "enable-toolbar",
-            "watchCallbacks": ["updateToolbarVisibility"]
-        },
-        "iframeLoaded": {
-            "state": true
-        },
-        "page": {
-            "type": Number,
-            "attr": "page"
-        },
-        "print": {
-            "method": true
-        },
-        "resourcesUrl": {
-            "context": "resourcesUrl"
-        },
-        "scale": {
-            "type": "Any",
-            "attr": "scale",
-            "watchCallbacks": ["updateScale"]
-        },
-        "setScale": {
-            "method": true
-        },
-        "src": {
-            "type": String,
-            "attr": "src"
-        },
-        "window": {
-            "context": "window"
-        }
-    }; }
-    static get events() { return [{
-            "name": "pageChange",
-            "method": "pageChange",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }, {
-            "name": "onLinkClick",
-            "method": "onLinkClick",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }]; }
-    static get style() { return "/**style-placeholder:phemium-pdf-viewer:**/"; }
+    static get originalStyleUrls() {
+        return {
+            "$": ["pdf-viewer.scss"]
+        };
+    }
+    static get styleUrls() {
+        return {
+            "$": ["pdf-viewer.css"]
+        };
+    }
+    static get assetsDirs() { return ["pdf-viewer-assets"]; }
+    static get properties() {
+        return {
+            "src": {
+                "type": "string",
+                "mutable": false,
+                "complexType": {
+                    "original": "string",
+                    "resolved": "string",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "src",
+                "reflect": false
+            },
+            "page": {
+                "type": "number",
+                "mutable": false,
+                "complexType": {
+                    "original": "number",
+                    "resolved": "number",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "page",
+                "reflect": false
+            },
+            "enableToolbar": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "enable-toolbar",
+                "reflect": false,
+                "defaultValue": "true"
+            },
+            "disableScrolling": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "disable-scrolling",
+                "reflect": false,
+                "defaultValue": "false"
+            },
+            "enableManualFullscreenFallback": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "enable-manual-fullscreen-fallback",
+                "reflect": false,
+                "defaultValue": "false"
+            },
+            "enableSideDrawer": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "enable-side-drawer",
+                "reflect": false,
+                "defaultValue": "true"
+            },
+            "enableSearch": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "enable-search",
+                "reflect": false,
+                "defaultValue": "true"
+            },
+            "scale": {
+                "type": "any",
+                "mutable": false,
+                "complexType": {
+                    "original": "\"auto\" | \"page-fit\" | \"page-width\" | number",
+                    "resolved": "\"auto\" | \"page-fit\" | \"page-width\" | number",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "attribute": "scale",
+                "reflect": false
+            }
+        };
+    }
+    static get states() {
+        return {
+            "iframeLoaded": {}
+        };
+    }
+    static get events() {
+        return [{
+                "method": "pageChange",
+                "name": "pageChange",
+                "bubbles": true,
+                "cancelable": true,
+                "composed": true,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "complexType": {
+                    "original": "number",
+                    "resolved": "number",
+                    "references": {}
+                }
+            }, {
+                "method": "linkClick",
+                "name": "linkClick",
+                "bubbles": true,
+                "cancelable": true,
+                "composed": true,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "complexType": {
+                    "original": "string",
+                    "resolved": "string",
+                    "references": {}
+                }
+            }, {
+                "method": "fullscreenToggle",
+                "name": "fullscreenToggle",
+                "bubbles": true,
+                "cancelable": true,
+                "composed": true,
+                "docs": {
+                    "tags": [],
+                    "text": ""
+                },
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                }
+            }];
+    }
+    static get methods() {
+        return {
+            "print": {
+                "complexType": {
+                    "signature": "() => Promise<void>",
+                    "parameters": [],
+                    "references": {
+                        "Promise": {
+                            "location": "global",
+                            "id": "global::Promise"
+                        }
+                    },
+                    "return": "Promise<void>"
+                },
+                "docs": {
+                    "text": "",
+                    "tags": []
+                }
+            },
+            "setScale": {
+                "complexType": {
+                    "signature": "(scale: \"auto\" | \"page-fit\" | \"page-width\" | number) => Promise<void>",
+                    "parameters": [{
+                            "name": "scale",
+                            "type": "number | \"auto\" | \"page-fit\" | \"page-width\"",
+                            "docs": ""
+                        }],
+                    "references": {
+                        "Promise": {
+                            "location": "global",
+                            "id": "global::Promise"
+                        }
+                    },
+                    "return": "Promise<void>"
+                },
+                "docs": {
+                    "text": "",
+                    "tags": []
+                }
+            },
+            "getPage": {
+                "complexType": {
+                    "signature": "() => Promise<any>",
+                    "parameters": [],
+                    "references": {
+                        "Promise": {
+                            "location": "global",
+                            "id": "global::Promise"
+                        }
+                    },
+                    "return": "Promise<any>"
+                },
+                "docs": {
+                    "text": "",
+                    "tags": []
+                }
+            }
+        };
+    }
+    static get elementRef() { return "element"; }
+    static get watchers() {
+        return [{
+                "propName": "enableToolbar",
+                "methodName": "updateToolbarVisibility"
+            }, {
+                "propName": "disableScrolling",
+                "methodName": "updateScrolling"
+            }, {
+                "propName": "enableSideDrawer",
+                "methodName": "updateSideDrawerVisibility"
+            }, {
+                "propName": "enableSearch",
+                "methodName": "updateSearchVisibility"
+            }, {
+                "propName": "scale",
+                "methodName": "updateScale"
+            }];
+    }
 }
 PdfViewer.CSSVariables = [
     "--pdf-viewer-top-offset",
     "--pdf-viewer-bottom-offset",
+    "--background-color",
+    "--toolbar-background-color",
+    "--border-color",
+    "--icon-color",
+    "--accent-color",
+    "--page-border-radius",
+    "--page-box-shadow",
+    "--page-margin",
+    "--floating-buttons-offset",
 ];
+//# sourceMappingURL=pdf-viewer.js.map

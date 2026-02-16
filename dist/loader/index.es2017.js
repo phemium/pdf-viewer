@@ -1,1 +1,3 @@
-export * from '../esm/es2017/pdf-viewer.define.js';
+
+export * from '../esm/polyfills/index.js';
+export * from '../esm/loader.js';

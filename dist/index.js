@@ -1,1 +1,1 @@
-// PdfViewer: CommonJS Main
+export * from './esm/index.js';

@@ -7,24 +7,34 @@ import {
     Watch,
     Method,
     State,
+    h,
+    getAssetPath,
+    ComponentInterface,
 } from "@stencil/core";
+import * as screenfull from "screenfull";
 
 @Component({
     tag: "phemium-pdf-viewer",
     styleUrl: "pdf-viewer.scss",
     shadow: true,
-    assetsDir: "pdf-viewer-assets",
+    assetsDirs: ["pdf-viewer-assets"],
 })
-export class PdfViewer {
+export class PdfViewer implements ComponentInterface {
     static CSSVariables = [
         "--pdf-viewer-top-offset",
         "--pdf-viewer-bottom-offset",
+        "--background-color",
+        "--toolbar-background-color",
+        "--border-color",
+        "--icon-color",
+        "--accent-color",
+        "--page-border-radius",
+        "--page-box-shadow",
+        "--page-margin",
+        "--floating-buttons-offset",
     ];
 
     @Element() element: HTMLElement;
-
-    @Prop({ context: "resourcesUrl" }) resourcesUrl: string;
-    @Prop({ context: "window" }) window: Window;
 
     @Prop() src: string;
     @Prop() page: number;
@@ -37,12 +47,33 @@ export class PdfViewer {
         if (this.toolbarEl) {
             if (this.enableToolbar) {
                 this.toolbarEl.classList.remove("hidden");
+                this.iframeEl.contentDocument.documentElement.style.setProperty(
+                    "--toolbar-height",
+                    ""
+                );
             } else {
                 this.toolbarEl.classList.add("hidden");
                 this.iframeEl.contentDocument.documentElement.style.setProperty(
                     "--toolbar-height",
                     "0px"
                 );
+            }
+        }
+    }
+
+    @Prop() disableScrolling = false;
+
+    @Prop() enableManualFullscreenFallback = false;
+
+    @Watch("disableScrolling")
+    updateScrolling() {
+        if (this.viewerContainer) {
+            if (this.disableScrolling) {
+                this.viewerContainer.style.pointerEvents = "none";
+                this.viewerContainer.style["WebkitOverflowScrolling"] = "auto";
+            } else {
+                this.viewerContainer.style.pointerEvents = "";
+                this.viewerContainer.style["WebkitOverflowScrolling"] = "";
             }
         }
     }
@@ -76,13 +107,16 @@ export class PdfViewer {
     }
 
     @Event() pageChange: EventEmitter<number>;
-    @Event() onLinkClick: EventEmitter<string>;
+    @Event() linkClick: EventEmitter<string>;
+
+    @Event() fullscreenToggle: EventEmitter<boolean>;
 
     @Method()
     print() {
         return new Promise<void>((resolve) => {
             this.iframeEl.contentWindow.print();
-            this.iframeEl.contentWindow.addEventListener(
+            (this.iframeEl
+                .contentWindow as any).PDFViewerApplication.eventBus.on(
                 "afterprint",
                 () => {
                     resolve();
@@ -100,34 +134,43 @@ export class PdfViewer {
     }
 
     @Method()
-    setScale(scale: "auto" | "page-fit" | "page-width" | number) {
+    async setScale(scale: "auto" | "page-fit" | "page-width" | number) {
         const contentWindow = this.iframeEl.contentWindow as any;
 
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = (this.iframeEl.contentWindow as any)
-                .PDFViewerApplication;
+            const { pdfViewer } = (this.iframeEl
+                .contentWindow as any).PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
+        }
+    }
+
+    @Method()
+    async getPage() {
+        const contentWindow = this.iframeEl.contentWindow as any;
+
+        if (contentWindow && contentWindow.PDFViewerApplication) {
+            const { pdfViewer } = (this.iframeEl
+                .contentWindow as any).PDFViewerApplication;
+            return pdfViewer.currentPageNumber;
         }
     }
 
     iframeEl: HTMLIFrameElement;
     viewerContainer: HTMLElement;
 
+    PDFViewerApplication: any;
+
     @State() iframeLoaded: boolean;
 
     get viewerSrc() {
         if (this.page) {
-            return `${
-                this.resourcesUrl
-            }pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(
-                this.src
-            )}#page=${this.page}`;
+            return `${getAssetPath(
+                "./pdf-viewer-assets/viewer/web/viewer.html"
+            )}?file=${encodeURIComponent(this.src)}#page=${this.page}`;
         }
-        return `${
-            this.resourcesUrl
-        }pdf-viewer-assets/viewer/web/viewer.html?file=${encodeURIComponent(
-            this.src
-        )}`;
+        return `${getAssetPath(
+            "./pdf-viewer-assets/viewer/web/viewer.html"
+        )}?file=${encodeURIComponent(this.src)}`;
     }
 
     componentDidLoad() {
@@ -136,7 +179,13 @@ export class PdfViewer {
             this.initButtonVisibility();
             this.addEventListeners();
             this.iframeLoaded = true;
+            this.PDFViewerApplication = (this.iframeEl.contentWindow as any).PDFViewerApplication;
         };
+    }
+
+    disconnectedCallback() {
+        // https://github.com/mozilla/pdf.js/issues/11297
+        this.PDFViewerApplication.pdfViewer._pages.forEach(page => page.reset());
     }
 
     setCSSVariables() {
@@ -152,64 +201,98 @@ export class PdfViewer {
     }
 
     initButtonVisibility() {
-        this.toolbarEl =
-            this.iframeEl.contentDocument.body.querySelector(
-                "#toolbarContainer"
-            );
-        this.sidebarToggleEl =
-            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
-        this.searchToggleEl =
-            this.iframeEl.contentDocument.body.querySelector("#viewFind");
+        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector(
+            "#toolbarContainer"
+        );
+        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector(
+            "#sidebarToggle"
+        );
+        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector(
+            "#viewFind"
+        );
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
 
     addEventListeners() {
-        this.viewerContainer =
-            this.iframeEl.contentDocument.body.querySelector(
-                "#viewerContainer"
-            );
-        this.viewerContainer.addEventListener(
-            "pagechange",
-            this.handlePageChange.bind(this)
+        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector(
+            "#viewerContainer"
         );
+
+        const frameWindow = this.iframeEl.contentWindow as any;
+        const pdfViewer = frameWindow.PDFViewerApplication;
+
+        pdfViewer.initializedPromise.then(() => {
+            pdfViewer.eventBus.on(
+                "pagechanging",
+                this.handlePageChange.bind(this)
+            );
+            // when the documents within the pdf viewer finish loading
+            pdfViewer.eventBus.on("pagesloaded", () => {
+                if (this.scale) {
+                    this.setScale(this.scale);
+                }
+            });
+        });
+
         this.viewerContainer.addEventListener(
             "click",
             this.handleLinkClick.bind(this)
         );
 
-        // when the documents within the pdf viewer finish loading
-        this.iframeEl.contentDocument.addEventListener("pagesloaded", () => {
-            if (this.scale) {
-                this.setScale(this.scale);
-            }
-        });
+        this.updateScrolling();
 
-        
-        if (
-            this.iframeEl.contentWindow.top.navigator.userAgent.match(/Android/)
-        ) {
-            const contentWindow = this.iframeEl.contentWindow as any;
-            if (contentWindow && contentWindow.PDFViewerApplication) {
-                contentWindow.PDFViewerApplication.initializedPromise.then(() => {
-                    console.log("PDF Initialized");
-                    contentWindow.PDFViewerApplication.eventBus.on(
-                        "download",
-                        this.handleDownload.bind(this)
+        const fullscreenBtn = this.iframeEl.contentDocument.documentElement.querySelector(
+            "#fullscreen"
+        );
+
+        const collapseIcon = fullscreenBtn.querySelector(
+            "#collapseIcon"
+        ) as HTMLElement;
+
+        const fullscreenIcon = fullscreenBtn.querySelector(
+            "#fullscreenIcon"
+        ) as HTMLElement;
+
+        if (screenfull.isEnabled) {
+            screenfull.on("change", () => {
+                if (screenfull.isEnabled) {
+                    if (screenfull.isFullscreen) {
+                        collapseIcon.classList.remove("hidden");
+                        fullscreenIcon.classList.add("hidden");
+                    } else {
+                        fullscreenIcon.classList.remove("hidden");
+                        collapseIcon.classList.add("hidden");
+                    }
+                }
+            });
+
+            fullscreenBtn.addEventListener("click", () => {
+                if (screenfull.isEnabled) {
+                    screenfull.toggle(
+                        this.iframeEl.contentDocument.documentElement
                     );
-                });
-            } else {
-                console.error("EventBus not found");
-            }
-        }
-    }
+                }
+            });
+        } else if (this.enableManualFullscreenFallback) {
+            // enable "fake" fullscreen
+            let isFullscreen = false;
+            fullscreenBtn.classList.remove("hidden");
 
-    handleDownload() {
-        if ((this.iframeEl.contentWindow as any).top.cordova && (this.iframeEl.contentWindow as any).top.cordova.InAppBrowser) {
-            (this.iframeEl.contentWindow as any).top.cordova.InAppBrowser.open(this.src, '_system', 'location=yes')
-        } else {
-            this.window.open(this.src);
+            fullscreenBtn.addEventListener("click", () => {
+                if (isFullscreen) {
+                    isFullscreen = false;
+                    collapseIcon.classList.add("hidden");
+                    fullscreenIcon.classList.remove("hidden");
+                }
+                else {
+                    isFullscreen = true;
+                    collapseIcon.classList.remove("hidden");
+                    fullscreenIcon.classList.add("hidden");
+                }
+                this.fullscreenToggle.emit(isFullscreen);
+            });
         }
     }
 
@@ -219,22 +302,23 @@ export class PdfViewer {
 
     handleLinkClick(e: any) {
         e.preventDefault();
-        const link = (e.target as any).closest(".linkAnnotation > a");
+        const link = e.target.tagName === "A" ? e.target : e.target.closest(".linkAnnotation > a");
         if (link) {
             // Ignore internal links to the same document
             if (link.classList.contains("internalLink")) {
                 return;
             }
-            const href =
-                (e.target as any).closest(".linkAnnotation > a").href || "";
-            this.onLinkClick.emit(href);
+            const href = link.href || "";
+            this.linkClick.emit(href);
         }
     }
 
     render() {
         return (
             <iframe
-                class={this.iframeLoaded ? "loaded" : ""}
+                class={{
+                    loaded: this.iframeLoaded,
+                }}
                 ref={(el) => (this.iframeEl = el as HTMLIFrameElement)}
                 src={this.viewerSrc}
             ></iframe>

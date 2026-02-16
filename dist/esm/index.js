@@ -1,1 +1,3 @@
-export * from './es5/index.js';
+
+
+//# sourceMappingURL=index.js.map

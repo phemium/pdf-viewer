@@ -1,36 +1,40 @@
 {
-    "name": "@phemium/pdf-viewer",
-    "version": "2.3.0",
+    "name": "@phemium-costaisa/pdf-viewer",
+    "version": "5.0.0",
     "description": "PDF Viewer Web Component. Built with stencil and pdfjs.",
     "homepage": "https://github.com/phemium/pdf-viewer",
     "repository": {
         "type": "git",
-        "url": "github:phemium/pdf-viewer"
+        "url": "github:phemium-costaisa/pdf-viewer"
     },
-    "author": "Phemium",
-    "module": "dist/esm/index.js",
-    "main": "dist/index.js",
-    "unpkg": "dist/pdf-viewer.js",
-    "types": "dist/types/components.d.ts",
+    "author": "Phemium Costaisa",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.js",
+    "es2015": "dist/esm/index.js",
+    "es2017": "dist/esm/index.js",
+    "types": "dist/types/index.d.ts",
     "collection": "dist/collection/collection-manifest.json",
+    "collection:main": "dist/collection/index.js",
+    "unpkg": "dist/pdf-viewer/pdf-viewer.esm.js",
     "files": [
         "dist/"
     ],
     "scripts": {
+        "build": "npm run pdf.js:build && npm run prepare-assets && npm run build:stencil",
         "build:stencil": "stencil build",
         "start": "stencil build --dev --watch --serve",
         "prepare-assets": "node ./scripts/prepare-assets.js",
-        "copy-package": "node ./scripts/copy-package.js",
-        "pdf.js:install": "cd pdf.js && npm install",
-        "pdf.js:build": "cd pdf.js && gulp generic-legacy",
+        "pdf.js:install": "cd pdf.js && npm install --legacy-peer-deps",
+        "pdf.js:build": "cd pdf.js && NODE_OPTIONS=--openssl-legacy-provider npx gulp --gulpfile gulpfile.mjs generic",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "gulp": "^4.0.2"
+        "gulp": "^5.0.1",
+        "screenfull": "^5.0.2"
     },
     "devDependencies": {
-        "@stencil/core": "0.17.0",
-        "@stencil/sass": "0.1.1",
+        "@stencil/core": "^4.12.0",
+        "@stencil/sass": "^3.0.9",
         "ncp": "^2.0.0"
     },
     "license": "MIT"
