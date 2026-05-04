@@ -49,13 +49,13 @@ export class PdfViewer implements ComponentInterface {
                 this.toolbarEl.classList.remove("hidden");
                 this.iframeEl.contentDocument.documentElement.style.setProperty(
                     "--toolbar-height",
-                    ""
+                    "",
                 );
             } else {
                 this.toolbarEl.classList.add("hidden");
                 this.iframeEl.contentDocument.documentElement.style.setProperty(
                     "--toolbar-height",
-                    "0px"
+                    "0px",
                 );
             }
         }
@@ -115,13 +115,14 @@ export class PdfViewer implements ComponentInterface {
     print() {
         return new Promise<void>((resolve) => {
             this.iframeEl.contentWindow.print();
-            (this.iframeEl
-                .contentWindow as any).PDFViewerApplication.eventBus.on(
+            (
+                this.iframeEl.contentWindow as any
+            ).PDFViewerApplication.eventBus.on(
                 "afterprint",
                 () => {
                     resolve();
                 },
-                { once: true }
+                { once: true },
             );
         });
     }
@@ -138,8 +139,8 @@ export class PdfViewer implements ComponentInterface {
         const contentWindow = this.iframeEl.contentWindow as any;
 
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = (this.iframeEl
-                .contentWindow as any).PDFViewerApplication;
+            const { pdfViewer } = (this.iframeEl.contentWindow as any)
+                .PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
         }
     }
@@ -149,8 +150,8 @@ export class PdfViewer implements ComponentInterface {
         const contentWindow = this.iframeEl.contentWindow as any;
 
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = (this.iframeEl
-                .contentWindow as any).PDFViewerApplication;
+            const { pdfViewer } = (this.iframeEl.contentWindow as any)
+                .PDFViewerApplication;
             return pdfViewer.currentPageNumber;
         }
     }
@@ -165,11 +166,11 @@ export class PdfViewer implements ComponentInterface {
     get viewerSrc() {
         if (this.page) {
             return `${getAssetPath(
-                "./pdf-viewer-assets/viewer/web/viewer.html"
+                "./pdf-viewer-assets/viewer/web/viewer.html",
             )}?file=${encodeURIComponent(this.src)}#page=${this.page}`;
         }
         return `${getAssetPath(
-            "./pdf-viewer-assets/viewer/web/viewer.html"
+            "./pdf-viewer-assets/viewer/web/viewer.html",
         )}?file=${encodeURIComponent(this.src)}`;
     }
 
@@ -179,46 +180,50 @@ export class PdfViewer implements ComponentInterface {
             this.initButtonVisibility();
             this.addEventListeners();
             this.iframeLoaded = true;
-            this.PDFViewerApplication = (this.iframeEl.contentWindow as any).PDFViewerApplication;
+            this.PDFViewerApplication = (
+                this.iframeEl.contentWindow as any
+            ).PDFViewerApplication;
         };
     }
 
     disconnectedCallback() {
         // https://github.com/mozilla/pdf.js/issues/11297
-        this.PDFViewerApplication.pdfViewer._pages.forEach(page => page.reset());
+        this.PDFViewerApplication.pdfViewer._pages.forEach((page) =>
+            page.reset(),
+        );
     }
 
     setCSSVariables() {
         for (let i = 0; i < PdfViewer.CSSVariables.length; i++) {
             const value = getComputedStyle(this.element).getPropertyValue(
-                PdfViewer.CSSVariables[i]
+                PdfViewer.CSSVariables[i],
             );
             this.iframeEl.contentDocument.documentElement.style.setProperty(
                 PdfViewer.CSSVariables[i],
-                value
+                value,
             );
         }
     }
 
     initButtonVisibility() {
-        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector(
-            "#toolbarContainer"
-        );
-        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector(
-            "#sidebarToggle"
-        );
-        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector(
-            "#viewFind"
-        );
+        this.toolbarEl =
+            this.iframeEl.contentDocument.body.querySelector(
+                "#toolbarContainer",
+            );
+        this.sidebarToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
+        this.searchToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#viewFind");
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
 
     addEventListeners() {
-        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector(
-            "#viewerContainer"
-        );
+        this.viewerContainer =
+            this.iframeEl.contentDocument.body.querySelector(
+                "#viewerContainer",
+            );
 
         const frameWindow = this.iframeEl.contentWindow as any;
         const pdfViewer = frameWindow.PDFViewerApplication;
@@ -226,7 +231,7 @@ export class PdfViewer implements ComponentInterface {
         pdfViewer.initializedPromise.then(() => {
             pdfViewer.eventBus.on(
                 "pagechanging",
-                this.handlePageChange.bind(this)
+                this.handlePageChange.bind(this),
             );
             // when the documents within the pdf viewer finish loading
             pdfViewer.eventBus.on("pagesloaded", () => {
@@ -238,21 +243,22 @@ export class PdfViewer implements ComponentInterface {
 
         this.viewerContainer.addEventListener(
             "click",
-            this.handleLinkClick.bind(this)
+            this.handleLinkClick.bind(this),
         );
 
         this.updateScrolling();
 
-        const fullscreenBtn = this.iframeEl.contentDocument.documentElement.querySelector(
-            "#fullscreen"
-        );
+        const fullscreenBtn =
+            this.iframeEl.contentDocument.documentElement.querySelector(
+                "#fullscreen",
+            );
 
-        const collapseIcon = fullscreenBtn.querySelector(
-            "#collapseIcon"
+        const collapseIcon = fullscreenBtn?.querySelector(
+            "#collapseIcon",
         ) as HTMLElement;
 
-        const fullscreenIcon = fullscreenBtn.querySelector(
-            "#fullscreenIcon"
+        const fullscreenIcon = fullscreenBtn?.querySelector(
+            "#fullscreenIcon",
         ) as HTMLElement;
 
         if (screenfull.isEnabled) {
@@ -268,10 +274,10 @@ export class PdfViewer implements ComponentInterface {
                 }
             });
 
-            fullscreenBtn.addEventListener("click", () => {
+            fullscreenBtn?.addEventListener("click", () => {
                 if (screenfull.isEnabled) {
                     screenfull.toggle(
-                        this.iframeEl.contentDocument.documentElement
+                        this.iframeEl.contentDocument.documentElement,
                     );
                 }
             });
@@ -285,8 +291,7 @@ export class PdfViewer implements ComponentInterface {
                     isFullscreen = false;
                     collapseIcon.classList.add("hidden");
                     fullscreenIcon.classList.remove("hidden");
-                }
-                else {
+                } else {
                     isFullscreen = true;
                     collapseIcon.classList.remove("hidden");
                     fullscreenIcon.classList.add("hidden");
@@ -302,7 +307,10 @@ export class PdfViewer implements ComponentInterface {
 
     handleLinkClick(e: any) {
         e.preventDefault();
-        const link = e.target.tagName === "A" ? e.target : e.target.closest(".linkAnnotation > a");
+        const link =
+            e.target.tagName === "A"
+                ? e.target
+                : e.target.closest(".linkAnnotation > a");
         if (link) {
             // Ignore internal links to the same document
             if (link.classList.contains("internalLink")) {

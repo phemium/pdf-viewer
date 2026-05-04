@@ -59,8 +59,7 @@ export class PdfViewer {
     print() {
         return new Promise((resolve) => {
             this.iframeEl.contentWindow.print();
-            this.iframeEl
-                .contentWindow.PDFViewerApplication.eventBus.on("afterprint", () => {
+            this.iframeEl.contentWindow.PDFViewerApplication.eventBus.on("afterprint", () => {
                 resolve();
             }, { once: true });
         });
@@ -71,16 +70,16 @@ export class PdfViewer {
     async setScale(scale) {
         const contentWindow = this.iframeEl.contentWindow;
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = this.iframeEl
-                .contentWindow.PDFViewerApplication;
+            const { pdfViewer } = this.iframeEl.contentWindow
+                .PDFViewerApplication;
             pdfViewer.currentScaleValue = scale;
         }
     }
     async getPage() {
         const contentWindow = this.iframeEl.contentWindow;
         if (contentWindow && contentWindow.PDFViewerApplication) {
-            const { pdfViewer } = this.iframeEl
-                .contentWindow.PDFViewerApplication;
+            const { pdfViewer } = this.iframeEl.contentWindow
+                .PDFViewerApplication;
             return pdfViewer.currentPageNumber;
         }
     }
@@ -101,7 +100,7 @@ export class PdfViewer {
     }
     disconnectedCallback() {
         // https://github.com/mozilla/pdf.js/issues/11297
-        this.PDFViewerApplication.pdfViewer._pages.forEach(page => page.reset());
+        this.PDFViewerApplication.pdfViewer._pages.forEach((page) => page.reset());
     }
     setCSSVariables() {
         for (let i = 0; i < PdfViewer.CSSVariables.length; i++) {
@@ -110,15 +109,19 @@ export class PdfViewer {
         }
     }
     initButtonVisibility() {
-        this.toolbarEl = this.iframeEl.contentDocument.body.querySelector("#toolbarContainer");
-        this.sidebarToggleEl = this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
-        this.searchToggleEl = this.iframeEl.contentDocument.body.querySelector("#viewFind");
+        this.toolbarEl =
+            this.iframeEl.contentDocument.body.querySelector("#toolbarContainer");
+        this.sidebarToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#sidebarToggle");
+        this.searchToggleEl =
+            this.iframeEl.contentDocument.body.querySelector("#viewFind");
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
     }
     addEventListeners() {
-        this.viewerContainer = this.iframeEl.contentDocument.body.querySelector("#viewerContainer");
+        this.viewerContainer =
+            this.iframeEl.contentDocument.body.querySelector("#viewerContainer");
         const frameWindow = this.iframeEl.contentWindow;
         const pdfViewer = frameWindow.PDFViewerApplication;
         pdfViewer.initializedPromise.then(() => {
@@ -133,8 +136,8 @@ export class PdfViewer {
         this.viewerContainer.addEventListener("click", this.handleLinkClick.bind(this));
         this.updateScrolling();
         const fullscreenBtn = this.iframeEl.contentDocument.documentElement.querySelector("#fullscreen");
-        const collapseIcon = fullscreenBtn.querySelector("#collapseIcon");
-        const fullscreenIcon = fullscreenBtn.querySelector("#fullscreenIcon");
+        const collapseIcon = fullscreenBtn === null || fullscreenBtn === void 0 ? void 0 : fullscreenBtn.querySelector("#collapseIcon");
+        const fullscreenIcon = fullscreenBtn === null || fullscreenBtn === void 0 ? void 0 : fullscreenBtn.querySelector("#fullscreenIcon");
         if (screenfull.isEnabled) {
             screenfull.on("change", () => {
                 if (screenfull.isEnabled) {
@@ -148,7 +151,7 @@ export class PdfViewer {
                     }
                 }
             });
-            fullscreenBtn.addEventListener("click", () => {
+            fullscreenBtn === null || fullscreenBtn === void 0 ? void 0 : fullscreenBtn.addEventListener("click", () => {
                 if (screenfull.isEnabled) {
                     screenfull.toggle(this.iframeEl.contentDocument.documentElement);
                 }
@@ -178,7 +181,9 @@ export class PdfViewer {
     }
     handleLinkClick(e) {
         e.preventDefault();
-        const link = e.target.tagName === "A" ? e.target : e.target.closest(".linkAnnotation > a");
+        const link = e.target.tagName === "A"
+            ? e.target
+            : e.target.closest(".linkAnnotation > a");
         if (link) {
             // Ignore internal links to the same document
             if (link.classList.contains("internalLink")) {
@@ -189,7 +194,7 @@ export class PdfViewer {
         }
     }
     render() {
-        return (h("iframe", { key: 'd6aeab810e193534a6cdbe596f044a82560b1b0f', class: {
+        return (h("iframe", { key: '60fb4e79beb354f5fafe62d578707850ab582944', class: {
                 loaded: this.iframeLoaded,
             }, ref: (el) => (this.iframeEl = el), src: this.viewerSrc }));
     }
