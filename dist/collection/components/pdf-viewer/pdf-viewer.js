@@ -2,13 +2,19 @@ import { h, getAssetPath, } from "@stencil/core";
 import * as screenfull from "screenfull";
 export class PdfViewer {
     constructor() {
+        /** Listener del eventBus de PDF.js para descarga en Cordova. */
+        this.boundHandleCordovaDownload = () => {
+            void this.handleCordovaDownload();
+        };
         this.src = undefined;
+        this.file = undefined;
         this.page = undefined;
         this.enableToolbar = true;
         this.disableScrolling = false;
         this.enableManualFullscreenFallback = false;
         this.enableSideDrawer = true;
         this.enableSearch = true;
+        this.enableAnnotationEditing = false;
         this.scale = undefined;
         this.iframeLoaded = undefined;
     }
@@ -45,6 +51,9 @@ export class PdfViewer {
                 this.sidebarToggleEl.classList.add("hidden");
             }
         }
+    }
+    updateAnnotationEditingVisibility() {
+        this.syncAnnotationEditingStyles();
     }
     updateSearchVisibility() {
         if (this.searchToggleEl) {
@@ -89,6 +98,32 @@ export class PdfViewer {
         }
         return `${getAssetPath("./pdf-viewer-assets/viewer/web/viewer.html")}?file=${encodeURIComponent(this.src)}`;
     }
+    componentWillLoad() {
+        this.onWebViewerLoadedBound = this.onWebViewerLoaded.bind(this);
+        document.addEventListener("webviewerloaded", this.onWebViewerLoadedBound);
+    }
+    /**
+     * PDF.js dispara este evento en document antes de PDFViewerApplication.run;
+     * así las opciones aplican a la primera carga del visor.
+     */
+    onWebViewerLoaded(ev) {
+        var _a, _b;
+        if (this.enableAnnotationEditing) {
+            return;
+        }
+        const win = (_a = ev.detail) === null || _a === void 0 ? void 0 : _a.source;
+        if (!win || win !== ((_b = this.iframeEl) === null || _b === void 0 ? void 0 : _b.contentWindow)) {
+            return;
+        }
+        const appOpts = win.PDFViewerApplicationOptions;
+        if (!(appOpts === null || appOpts === void 0 ? void 0 : appOpts.set)) {
+            return;
+        }
+        // -1 = AnnotationEditorType.DISABLE (pdf.js)
+        appOpts.set("annotationEditorMode", -1);
+        appOpts.set("enableComment", false);
+        appOpts.set("enableSignatureEditor", false);
+    }
     componentDidLoad() {
         this.iframeEl.onload = () => {
             this.setCSSVariables();
@@ -99,14 +134,174 @@ export class PdfViewer {
         };
     }
     disconnectedCallback() {
+        var _a, _b, _c, _d, _e;
+        document.removeEventListener("webviewerloaded", this.onWebViewerLoadedBound);
+        (_b = (_a = this.PDFViewerApplication) === null || _a === void 0 ? void 0 : _a.eventBus) === null || _b === void 0 ? void 0 : _b.off("download", this.boundHandleCordovaDownload);
         // https://github.com/mozilla/pdf.js/issues/11297
-        this.PDFViewerApplication.pdfViewer._pages.forEach((page) => page.reset());
+        (_e = (_d = (_c = this.PDFViewerApplication) === null || _c === void 0 ? void 0 : _c.pdfViewer) === null || _d === void 0 ? void 0 : _d._pages) === null || _e === void 0 ? void 0 : _e.forEach((page) => page.reset());
+    }
+    /** True cuando el visor corre dentro de una app Cordova (WebView). */
+    isCordovaEnvironment() {
+        var _a;
+        const topWindow = ((_a = window.top) !== null && _a !== void 0 ? _a : window);
+        return !!topWindow.cordova;
+    }
+    isHttpUrl(url) {
+        return /^https?:\/\//i.test(url !== null && url !== void 0 ? url : "");
+    }
+    resolveDownloadFilename(app) {
+        var _a, _b;
+        const fromProp = (_a = this.file) === null || _a === void 0 ? void 0 : _a.trim();
+        if (fromProp) {
+            return fromProp;
+        }
+        const fromApp = app === null || app === void 0 ? void 0 : app._docFilename;
+        if (typeof fromApp === "string" && fromApp.trim()) {
+            return fromApp.trim();
+        }
+        const fromTitle = (_b = app === null || app === void 0 ? void 0 : app.documentInfo) === null || _b === void 0 ? void 0 : _b.Title;
+        if (typeof fromTitle === "string" && fromTitle.trim()) {
+            return `${fromTitle.trim()}.pdf`;
+        }
+        return "documento.pdf";
+    }
+    openExternalDownloadUrl(url) {
+        var _a, _b;
+        const topWindow = ((_a = window.top) !== null && _a !== void 0 ? _a : window);
+        if ((_b = topWindow.cordova) === null || _b === void 0 ? void 0 : _b.InAppBrowser) {
+            topWindow.cordova.InAppBrowser.open(url, "_system", "location=yes");
+            return;
+        }
+        window.open(url, "_system");
+    }
+    postMessageToHost(payload) {
+        var _a;
+        const targetWindow = (_a = window.top) !== null && _a !== void 0 ? _a : window;
+        targetWindow.postMessage(payload, "*");
+    }
+    async getPdfBlobAndFilename() {
+        var _a, _b;
+        const frameWindow = (_a = this.iframeEl) === null || _a === void 0 ? void 0 : _a.contentWindow;
+        const app = frameWindow === null || frameWindow === void 0 ? void 0 : frameWindow.PDFViewerApplication;
+        if (!app) {
+            return null;
+        }
+        let data;
+        try {
+            data = await (app.pdfDocument
+                ? app.pdfDocument.getData()
+                : (_b = app.pdfLoadingTask) === null || _b === void 0 ? void 0 : _b.getData());
+        }
+        catch (error) {
+            console.error("phemium-pdf-viewer: error obteniendo bytes del PDF", error);
+            return null;
+        }
+        if (!(data === null || data === void 0 ? void 0 : data.length)) {
+            return null;
+        }
+        return {
+            blob: new Blob([data], { type: "application/pdf" }),
+            filename: this.resolveDownloadFilename(app),
+        };
+    }
+    /**
+     * En Cordova el DownloadManager de PDF.js (<a download>) no funciona en WebView.
+     * Para URLs HTTP(S) abrimos el documento en el navegador del sistema; para data:/blob
+     * enviamos el PDF al host vía postMessage para guardarlo con cordova-plugin-file.
+     */
+    async handleCordovaDownload() {
+        if (!this.isCordovaEnvironment()) {
+            return;
+        }
+        if (this.isHttpUrl(this.src)) {
+            this.openExternalDownloadUrl(this.src);
+            return;
+        }
+        const pdfPayload = await this.getPdfBlobAndFilename();
+        if (!pdfPayload) {
+            return;
+        }
+        this.postMessageToHost({
+            blob: pdfPayload.blob,
+            filename: pdfPayload.filename,
+        });
     }
     setCSSVariables() {
         for (let i = 0; i < PdfViewer.CSSVariables.length; i++) {
             const value = getComputedStyle(this.element).getPropertyValue(PdfViewer.CSSVariables[i]);
             this.iframeEl.contentDocument.documentElement.style.setProperty(PdfViewer.CSSVariables[i], value);
         }
+    }
+    /**
+     * Refuerzo por CSS dentro del iframe: oculta #editorModeButtons y el separador asociado.
+     * PDF.js puede volver a mostrar el grupo vía clases; !important mantiene el bloque oculto.
+     */
+    syncAnnotationEditingStyles() {
+        var _a;
+        const doc = (_a = this.iframeEl) === null || _a === void 0 ? void 0 : _a.contentDocument;
+        if (!doc) {
+            return;
+        }
+        const existing = doc.getElementById(PdfViewer.ANNOTATION_HIDE_STYLE_ID);
+        if (this.enableAnnotationEditing) {
+            existing === null || existing === void 0 ? void 0 : existing.remove();
+            return;
+        }
+        if (existing) {
+            return;
+        }
+        const style = doc.createElement("style");
+        style.id = PdfViewer.ANNOTATION_HIDE_STYLE_ID;
+        style.textContent = `
+#editorModeButtons,
+#editorModeSeparator {
+  display: none !important;
+}
+`.trim();
+        doc.head.appendChild(style);
+    }
+    /**
+     * Oculta vía CSS los botones Abrir e Imprimir del visor embebido.
+     * Se inyecta una sola vez; el elemento permanece en el DOM para que PDF.js
+     * registre sus listeners sin errores.
+     */
+    syncEmbeddedHideStyles() {
+        var _a;
+        const doc = (_a = this.iframeEl) === null || _a === void 0 ? void 0 : _a.contentDocument;
+        if (!doc || doc.getElementById(PdfViewer.EMBEDDED_HIDE_STYLE_ID)) {
+            return;
+        }
+        const style = doc.createElement("style");
+        style.id = PdfViewer.EMBEDDED_HIDE_STYLE_ID;
+        style.textContent = `
+#printButton,
+#secondaryOpenFile,
+#secondaryPrint {
+  display: none !important;
+}
+`.trim();
+        doc.head.appendChild(style);
+    }
+    /**
+     * Tipografía de los botones de la barra del visor (clase .toolbarButton de PDF.js).
+     */
+    syncToolbarButtonFontStyle() {
+        var _a;
+        const doc = (_a = this.iframeEl) === null || _a === void 0 ? void 0 : _a.contentDocument;
+        if (!doc) {
+            return;
+        }
+        if (doc.getElementById(PdfViewer.TOOLBAR_BUTTON_FONT_STYLE_ID)) {
+            return;
+        }
+        const style = doc.createElement("style");
+        style.id = PdfViewer.TOOLBAR_BUTTON_FONT_STYLE_ID;
+        style.textContent = `
+.toolbarButton {
+  font-size: 13px !important;
+}
+`.trim();
+        doc.head.appendChild(style);
     }
     initButtonVisibility() {
         this.toolbarEl =
@@ -118,6 +313,9 @@ export class PdfViewer {
         this.updateToolbarVisibility();
         this.updateSideDrawerVisibility();
         this.updateSearchVisibility();
+        this.syncAnnotationEditingStyles();
+        this.syncEmbeddedHideStyles();
+        this.syncToolbarButtonFontStyle();
     }
     addEventListeners() {
         this.viewerContainer =
@@ -125,13 +323,23 @@ export class PdfViewer {
         const frameWindow = this.iframeEl.contentWindow;
         const pdfViewer = frameWindow.PDFViewerApplication;
         pdfViewer.initializedPromise.then(() => {
+            // Por si PDF.js altera la barra tras el arranque; el estilo inyectado sigue aplicando.
+            this.syncAnnotationEditingStyles();
+            this.syncEmbeddedHideStyles();
+            this.syncToolbarButtonFontStyle();
             pdfViewer.eventBus.on("pagechanging", this.handlePageChange.bind(this));
             // when the documents within the pdf viewer finish loading
             pdfViewer.eventBus.on("pagesloaded", () => {
+                this.syncAnnotationEditingStyles();
+                this.syncEmbeddedHideStyles();
+                this.syncToolbarButtonFontStyle();
                 if (this.scale) {
                     this.setScale(this.scale);
                 }
             });
+            if (this.isCordovaEnvironment()) {
+                pdfViewer.eventBus.on("download", this.boundHandleCordovaDownload);
+            }
         });
         this.viewerContainer.addEventListener("click", this.handleLinkClick.bind(this));
         this.updateScrolling();
@@ -194,7 +402,7 @@ export class PdfViewer {
         }
     }
     render() {
-        return (h("iframe", { key: '60fb4e79beb354f5fafe62d578707850ab582944', class: {
+        return (h("iframe", { key: '24ac02f5175489405c44320e229907ae709f6ca6', class: {
                 loaded: this.iframeLoaded,
             }, ref: (el) => (this.iframeEl = el), src: this.viewerSrc }));
     }
@@ -228,6 +436,23 @@ export class PdfViewer {
                     "text": ""
                 },
                 "attribute": "src",
+                "reflect": false
+            },
+            "file": {
+                "type": "string",
+                "mutable": false,
+                "complexType": {
+                    "original": "string",
+                    "resolved": "string",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": "Nombre de archivo sugerido para la descarga en Cordova (atributo file del host)."
+                },
+                "attribute": "file",
                 "reflect": false
             },
             "page": {
@@ -336,6 +561,24 @@ export class PdfViewer {
                 "attribute": "enable-search",
                 "reflect": false,
                 "defaultValue": "true"
+            },
+            "enableAnnotationEditing": {
+                "type": "boolean",
+                "mutable": false,
+                "complexType": {
+                    "original": "boolean",
+                    "resolved": "boolean",
+                    "references": {}
+                },
+                "required": false,
+                "optional": false,
+                "docs": {
+                    "tags": [],
+                    "text": "Si es false, desactiva herramientas de edici\u00F3n (resaltado, texto, tinta, etc.),\ncomentarios y firma en la barra del visor PDF.js."
+                },
+                "attribute": "enable-annotation-editing",
+                "reflect": false,
+                "defaultValue": "false"
             },
             "scale": {
                 "type": "any",
@@ -480,6 +723,9 @@ export class PdfViewer {
                 "propName": "enableSideDrawer",
                 "methodName": "updateSideDrawerVisibility"
             }, {
+                "propName": "enableAnnotationEditing",
+                "methodName": "updateAnnotationEditingVisibility"
+            }, {
                 "propName": "enableSearch",
                 "methodName": "updateSearchVisibility"
             }, {
@@ -488,6 +734,12 @@ export class PdfViewer {
             }];
     }
 }
+/** id del <style> inyectado en el iframe para ocultar la barra de anotaciones */
+PdfViewer.ANNOTATION_HIDE_STYLE_ID = "phemium-pdf-viewer-hide-editor-toolbar";
+/** id del <style> para tamaño de fuente de botones de barra en PDF.js */
+PdfViewer.TOOLBAR_BUTTON_FONT_STYLE_ID = "phemium-pdf-viewer-toolbar-button-font";
+/** id del <style> que oculta botones Abrir e Imprimir no aplicables en visor embebido */
+PdfViewer.EMBEDDED_HIDE_STYLE_ID = "phemium-pdf-viewer-embedded-hide";
 PdfViewer.CSSVariables = [
     "--pdf-viewer-top-offset",
     "--pdf-viewer-bottom-offset",

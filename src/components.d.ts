@@ -8,10 +8,18 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface PhemiumPdfViewer {
         "disableScrolling": boolean;
+        /**
+          * Si es false, desactiva herramientas de edición (resaltado, texto, tinta, etc.), comentarios y firma en la barra del visor PDF.js.
+         */
+        "enableAnnotationEditing": boolean;
         "enableManualFullscreenFallback": boolean;
         "enableSearch": boolean;
         "enableSideDrawer": boolean;
         "enableToolbar": boolean;
+        /**
+          * Nombre de archivo sugerido para la descarga en Cordova (atributo file del host).
+         */
+        "file": string;
         "getPage": () => Promise<any>;
         "page": number;
         "print": () => Promise<void>;
@@ -51,10 +59,18 @@ declare global {
 declare namespace LocalJSX {
     interface PhemiumPdfViewer {
         "disableScrolling"?: boolean;
+        /**
+          * Si es false, desactiva herramientas de edición (resaltado, texto, tinta, etc.), comentarios y firma en la barra del visor PDF.js.
+         */
+        "enableAnnotationEditing"?: boolean;
         "enableManualFullscreenFallback"?: boolean;
         "enableSearch"?: boolean;
         "enableSideDrawer"?: boolean;
         "enableToolbar"?: boolean;
+        /**
+          * Nombre de archivo sugerido para la descarga en Cordova (atributo file del host).
+         */
+        "file"?: string;
         "onFullscreenToggle"?: (event: PhemiumPdfViewerCustomEvent<boolean>) => void;
         "onLinkClick"?: (event: PhemiumPdfViewerCustomEvent<string>) => void;
         "onPageChange"?: (event: PhemiumPdfViewerCustomEvent<number>) => void;
