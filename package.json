@@ -1,6 +1,6 @@
 {
     "name": "@phemium-costaisa/pdf-viewer",
-    "version": "5.0.0-rc09",
+    "version": "5.0.0-rc08",
     "description": "PDF Viewer Web Component. Built with stencil and pdfjs.",
     "homepage": "https://github.com/phemium/pdf-viewer",
     "repository": {
